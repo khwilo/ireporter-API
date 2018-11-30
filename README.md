@@ -1,5 +1,5 @@
 # iReporter API
 
-[![Build Status](https://travis-ci.org/khwilo/ireporter-API.svg?branch=ft-get-one-redflag-162336816)](https://travis-ci.org/khwilo/ireporter-API) [![Coverage Status](https://coveralls.io/repos/github/khwilo/ireporter-API/badge.svg?branch=ft-get-one-redflag-162336816)](https://coveralls.io/github/khwilo/ireporter-API?branch=ft-get-one-redflag-162336816)
+[![Build Status](https://travis-ci.org/khwilo/ireporter-API.svg?branch=ft-delete-one-redflag-162341719)](https://travis-ci.org/khwilo/ireporter-API) [![Coverage Status](https://coveralls.io/repos/github/khwilo/ireporter-API/badge.svg?branch=ft-delete-one-redflag-162341719)](https://coveralls.io/github/khwilo/ireporter-API?branch=ft-delete-one-redflag-162341719)
 
 This repository consists of implementation of the API endpoints for the [iReporter web application](https://khwilo.github.io/iReporter/UI/).  
