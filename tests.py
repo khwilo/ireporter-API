@@ -45,6 +45,10 @@ class IncidenceTestCase(unittest.TestCase):
         response_msg = json.loads(res.data.decode("UTF-8"))
         self.assertEqual(200, response_msg["status"])
         self.assertEqual(IncidenceModel.get_incidence_by_id(1), response_msg["data"][0])
+        res = self.client().get('/red-flags/1-')
+        response_msg = json.loads(res.data.decode("UTF-8"))
+        self.assertEqual("red-flag id must be an Integer", response_msg["message"])
+        self.assertEqual(res.status_code, 400)
 
     def test_delete_one_red_flag(self):
         """Test whether the API can delete a red flag"""
@@ -77,6 +81,15 @@ class IncidenceTestCase(unittest.TestCase):
         res = self.client().get('/red-flags/1')
         response_msg = json.loads(res.data.decode("UTF-8"))
         self.assertEqual("5S10E", response_msg["data"][0]["location"])
+        res = self.client().put(
+            '/red-flags/1a/location',
+            data = {
+                "location": "5S10E"
+            }
+        )
+        response_msg = json.loads(res.data.decode("UTF-8"))
+        self.assertEqual("red-flag id must be an Integer", response_msg["message"])
+        self.assertEqual(res.status_code, 400)
 
     def test_edit_red_flag_comment(self):
         """Test whether the API can edit a red flag location"""
@@ -94,6 +107,15 @@ class IncidenceTestCase(unittest.TestCase):
         res = self.client().get('/red-flags/1')
         response_msg = json.loads(res.data.decode("UTF-8"))
         self.assertEqual("RED FLAG TEST TWO", response_msg["data"][0]["comment"])
+        res = self.client().put(
+            '/red-flags/x/comment',
+            data = {
+                "comment": "Error in comment"
+            }
+        )
+        response_msg = json.loads(res.data.decode("UTF-8"))
+        self.assertEqual("red-flag id must be an Integer", response_msg["message"])
+        self.assertEqual(res.status_code, 400)
 
 if __name__ == "__main__":
     unittest.main()
