@@ -89,6 +89,8 @@ class IncidenceTestCase(unittest.TestCase):
             }
         )
         self.assertEqual(res.status_code, 200)
+        response_msg = json.loads(res.data.decode("UTF-8"))
+        self.assertEqual("Updated red-flag record’s comment", response_msg["data"][0]["message"])
 
 if __name__ == "__main__":
     unittest.main()
