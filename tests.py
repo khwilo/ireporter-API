@@ -36,6 +36,15 @@ class IncidenceTestCase(unittest.TestCase):
         self.assertEqual(200, response_msg["status"])
         self.assertEqual(IncidenceModel.get_all_incidences(), response_msg["data"])
 
+    def test_fetching_one_red_flag(self):
+        """Test whether the API can fetch one red flag"""
+        res = self.client().post('/red-flags', data=self.incidences)
+        self.assertEqual(res.status_code, 201)
+        res = self.client().get('/red-flags/1')
+        self.assertEqual(res.status_code, 200)
+        response_msg = json.loads(res.data.decode("UTF-8"))
+        self.assertEqual(200, response_msg["status"])
+        self.assertEqual(IncidenceModel.get_incidence_by_id(1), response_msg["data"][0])
 
 if __name__ == "__main__":
     unittest.main()
