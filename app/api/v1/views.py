@@ -54,3 +54,21 @@ class RedFlag(Resource):
             }
         else:
             return {'message': "red-flag id must be an Integer"}, 400
+
+    def delete(self, id):
+        if id.isdigit():
+            incidence = IncidenceModel.get_incidence_by_id(int(id))
+            if incidence == {}:
+                return {'message': "red flag with id {} doesn't exit".format(id)}, 404
+            else:
+                IncidenceModel.delete_by_id(int(id))
+                return {
+                    "status": 200,
+                    "data": [{
+                        "id": int(id),
+                        "message": "red-flag record has been deleted"
+                    }]
+                }, 200
+        else:
+            return {'message': "incidence id must be an Integer"}, 400
+            

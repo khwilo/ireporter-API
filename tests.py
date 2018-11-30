@@ -46,5 +46,20 @@ class IncidenceTestCase(unittest.TestCase):
         self.assertEqual(200, response_msg["status"])
         self.assertEqual(IncidenceModel.get_incidence_by_id(1), response_msg["data"][0])
 
+    def test_delete_one_red_flag(self):
+        """Test whether the API can delete a red flag"""
+        res = self.client().post('/red-flags', data=self.incidences)
+        self.assertEqual(res.status_code, 201)
+        res = self.client().delete('/red-flags/1')
+        self.assertEqual(res.status_code, 200)
+        response_msg = json.loads(res.data.decode("UTF-8"))
+        self.assertEqual("red-flag record has been deleted", response_msg["data"][0]["message"])
+        res = self.client().get('/red-flags/1')
+        self.assertEqual(res.status_code, 404)
+        res = self.client().delete('/red-flags/2') # Test deletion of non-existent red flag record
+        self.assertEqual(res.status_code, 404)
+        res = self.client().delete('/red-flags/a')
+        self.assertEqual(res.status_code, 400) # Test that only integer ids are allowed
+
 if __name__ == "__main__":
     unittest.main()
