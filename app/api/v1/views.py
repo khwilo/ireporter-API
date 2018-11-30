@@ -41,3 +41,16 @@ class RedFlagList(Resource):
             "data": incidences
         }, 200
     
+class RedFlag(Resource):
+    """Allows a request on a single RedFlag item"""
+    def get(self, id):
+        if id.isdigit():
+            incidence = IncidenceModel.get_incidence_by_id(int(id))
+            if incidence == {}:
+                return {'message': "red flag with id {} doesn't exist".format(id)}, 404
+            return {
+                "status": 200,
+                "data": [incidence]
+            }
+        else:
+            return {'message': "red-flag id must be an Integer"}, 400
