@@ -117,5 +117,28 @@ class IncidenceTestCase(unittest.TestCase):
         self.assertEqual("red-flag id must be an Integer", response_msg["message"])
         self.assertEqual(res.status_code, 400)
 
+class UserTestCase(unittest.TestCase):
+    """This class represents the User test case"""
+    def setUp(self):
+        """Define the test variables and initialize the application"""
+        self.app = create_app(config_name="testing")
+        self.client = self.app.test_client
+        true = True # specify value for isAdmin
+        self.users = {
+            "firstname": "john",
+            "lastname": "doe",
+            "othernames": "foo",
+            "email": "joe@test.com",
+            "phoneNumber": "0700000000",
+            "username": "jondo",
+            "isAdmin": true,
+            "password": "12345"
+        }
+    
+    def test_user_regisration(self):
+        """Test whether the API can register a user"""
+        res = self.client().post('/register', data=self.users)
+        self.assertEqual(res.status_code, 201)
+
 if __name__ == "__main__":
     unittest.main()
