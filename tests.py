@@ -34,7 +34,7 @@ class IncidenceTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 200)
         response_msg = json.loads(res.data.decode("UTF-8"))
         self.assertEqual(200, response_msg["status"])
-        self.assertEqual(IncidenceModel.get_incidence_by_id(1), response_msg["data"][0])
+        self.assertEqual(IncidenceModel.get_all_incidences(), response_msg["data"])
 
 
 if __name__ == "__main__":
