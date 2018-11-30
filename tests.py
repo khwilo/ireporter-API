@@ -78,5 +78,22 @@ class IncidenceTestCase(unittest.TestCase):
         response_msg = json.loads(res.data.decode("UTF-8"))
         self.assertEqual("5S10E", response_msg["data"][0]["location"])
 
+    def test_edit_red_flag_comment(self):
+        """Test whether the API can edit a red flag location"""
+        res = self.client().post('/red-flags', data=self.incidences) # Create a red-flag
+        self.assertEqual(res.status_code, 201)
+        res = self.client().put(
+            '/red-flags/1/comment',
+            data = {
+                "comment": "RED FLAG TEST TWO"
+            }
+        )
+        self.assertEqual(res.status_code, 200)
+        response_msg = json.loads(res.data.decode("UTF-8"))
+        self.assertEqual("Updated red-flag record’s comment", response_msg["data"][0]["message"])
+        res = self.client().get('/red-flags/1')
+        response_msg = json.loads(res.data.decode("UTF-8"))
+        self.assertEqual("RED FLAG TEST TWO", response_msg["data"][0]["comment"])
+
 if __name__ == "__main__":
     unittest.main()
