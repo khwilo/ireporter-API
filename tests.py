@@ -124,7 +124,7 @@ class UserTestCase(unittest.TestCase):
         self.app = create_app(config_name="testing")
         self.client = self.app.test_client
         true = True # specify value for isAdmin
-        self.users = {
+        self.new_user = {
             "firstname": "john",
             "lastname": "doe",
             "othernames": "foo",
@@ -134,14 +134,25 @@ class UserTestCase(unittest.TestCase):
             "isAdmin": true,
             "password": "12345"
         }
+
+        self.registered_user = {
+            "username": "jondo",
+            "password": "12345"
+        }
     
     def test_user_regisration(self):
         """Test whether the API can register a user"""
-        res = self.client().post('/register', data=self.users)
+        res = self.client().post('/register', data=self.new_user)
         self.assertEqual(res.status_code, 201)
         response_msg = json.loads(res.data.decode("UTF-8"))
         self.assertEqual(201, response_msg["status"])
         self.assertEqual("Create user record", response_msg["data"][0]["message"])
+
+    def test_user_login(self):
+        """Test whether the API can login a user"""
+        res = self.client().post('/login', data=self.registered_user)
+        self.assertEqual(res.status_code, 201)
+      
 
 if __name__ == "__main__":
     unittest.main()
