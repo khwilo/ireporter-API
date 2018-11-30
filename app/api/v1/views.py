@@ -93,7 +93,7 @@ class RedFlagLocation(Resource):
                         "message": "Updated red-flag record’s location"
                     }]
                 }
-        return {'message': "incidence id must be an Integer"}, 400
+        return {'message': "red-flag id must be an Integer"}, 400
         
 class RedFlagComment(Resource):
     """Allows a request on a single RedFlag comment"""
@@ -116,5 +116,5 @@ class RedFlagComment(Resource):
                     }]
                 }
         else:
-            return {'message': "incidence id must be an Integer"}, 400
+            return {'message': "red-flag id must be an Integer"}, 400
     
