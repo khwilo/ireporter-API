@@ -30,3 +30,14 @@ class RedFlagList(Resource):
                 }
             ]
         }, 201
+    
+    
+    def get(self):
+        incidences = IncidenceModel.get_all_incidences()
+        if incidences == []:
+            return {'message': 'no red-flag has been added yet'}, 404
+        return {
+            "status": 200,
+            "data": incidences
+        }, 200
+    
