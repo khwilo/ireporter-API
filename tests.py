@@ -21,7 +21,7 @@ class IncidenceTestCase(unittest.TestCase):
     
     def test_red_flag_creation(self):
         """Test whether the API can create a red flag"""
-        res = self.client().post('/red-flags', data=self.incidences)
+        res = self.client().post('/api/v1/red-flags', data=self.incidences)
         self.assertEqual(res.status_code, 201)
         response_msg = json.loads(res.data.decode("UTF-8"))
         self.assertEqual(201, response_msg["status"])
@@ -29,9 +29,9 @@ class IncidenceTestCase(unittest.TestCase):
 
     def test_fetching_all_red_flags(self):
         """Test whether the API can fetch all red flags"""
-        res = self.client().post('/red-flags', data=self.incidences)
+        res = self.client().post('/api/v1/red-flags', data=self.incidences)
         self.assertEqual(res.status_code, 201)
-        res = self.client().get('/red-flags')
+        res = self.client().get('/api/v1/red-flags')
         self.assertEqual(res.status_code, 200)
         response_msg = json.loads(res.data.decode("UTF-8"))
         self.assertEqual(200, response_msg["status"])
@@ -39,39 +39,39 @@ class IncidenceTestCase(unittest.TestCase):
 
     def test_fetching_one_red_flag(self):
         """Test whether the API can fetch one red flag"""
-        res = self.client().post('/red-flags', data=self.incidences)
+        res = self.client().post('/api/v1/red-flags', data=self.incidences)
         self.assertEqual(res.status_code, 201)
-        res = self.client().get('/red-flags/1')
+        res = self.client().get('/api/v1/red-flags/1')
         self.assertEqual(res.status_code, 200)
         response_msg = json.loads(res.data.decode("UTF-8"))
         self.assertEqual(200, response_msg["status"])
         self.assertEqual(IncidenceModel.get_incidence_by_id(1), response_msg["data"][0])
-        res = self.client().get('/red-flags/1-')
+        res = self.client().get('/api/v1/red-flags/1-')
         response_msg = json.loads(res.data.decode("UTF-8"))
         self.assertEqual("red-flag id must be an Integer", response_msg["message"])
         self.assertEqual(res.status_code, 400)
 
     def test_delete_one_red_flag(self):
         """Test whether the API can delete a red flag"""
-        res = self.client().post('/red-flags', data=self.incidences) # Create a red-flag
+        res = self.client().post('/api/v1/red-flags', data=self.incidences) # Create a red-flag
         self.assertEqual(res.status_code, 201)
-        res = self.client().delete('/red-flags/1') # Delete the created red-flag
+        res = self.client().delete('/api/v1/red-flags/1') # Delete the created red-flag
         self.assertEqual(res.status_code, 200)
         response_msg = json.loads(res.data.decode("UTF-8"))
         self.assertEqual("red-flag record has been deleted", response_msg["data"][0]["message"])
-        res = self.client().get('/red-flags/1')
+        res = self.client().get('/api/v1/red-flags/1')
         self.assertEqual(res.status_code, 404)
-        res = self.client().delete('/red-flags/2') # Test deletion of non-existent red flag record
+        res = self.client().delete('/api/v1/red-flags/2') # Test deletion of non-existent red flag record
         self.assertEqual(res.status_code, 404)
-        res = self.client().delete('/red-flags/a')
+        res = self.client().delete('/api/v1/red-flags/a')
         self.assertEqual(res.status_code, 400) # Test that only integer ids are allowed
 
     def test_edit_red_flag_location(self):
         """Test whether the API can edit a red flag location"""
-        res = self.client().post('/red-flags', data=self.incidences) # Create a red-flag
+        res = self.client().post('/api/v1/red-flags', data=self.incidences) # Create a red-flag
         self.assertEqual(res.status_code, 201)
         res = self.client().put(
-            '/red-flags/1/location',
+            '/api/v1/red-flags/1/location',
             data = {
                 "location": "5S10E"
             }
@@ -79,11 +79,11 @@ class IncidenceTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 200)
         response_msg = json.loads(res.data.decode("UTF-8"))
         self.assertEqual("Updated red-flag record’s location", response_msg["data"][0]["message"])
-        res = self.client().get('/red-flags/1')
+        res = self.client().get('/api/v1/red-flags/1')
         response_msg = json.loads(res.data.decode("UTF-8"))
         self.assertEqual("5S10E", response_msg["data"][0]["location"])
         res = self.client().put(
-            '/red-flags/1a/location',
+            '/api/v1/red-flags/1a/location',
             data = {
                 "location": "5S10E"
             }
@@ -94,10 +94,10 @@ class IncidenceTestCase(unittest.TestCase):
 
     def test_edit_red_flag_comment(self):
         """Test whether the API can edit a red flag location"""
-        res = self.client().post('/red-flags', data=self.incidences) # Create a red-flag
+        res = self.client().post('/api/v1/red-flags', data=self.incidences) # Create a red-flag
         self.assertEqual(res.status_code, 201)
         res = self.client().put(
-            '/red-flags/1/comment',
+            '/api/v1/red-flags/1/comment',
             data = {
                 "comment": "RED FLAG TEST TWO"
             }
@@ -105,11 +105,11 @@ class IncidenceTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 200)
         response_msg = json.loads(res.data.decode("UTF-8"))
         self.assertEqual("Updated red-flag record’s comment", response_msg["data"][0]["message"])
-        res = self.client().get('/red-flags/1')
+        res = self.client().get('/api/v1/red-flags/1')
         response_msg = json.loads(res.data.decode("UTF-8"))
         self.assertEqual("RED FLAG TEST TWO", response_msg["data"][0]["comment"])
         res = self.client().put(
-            '/red-flags/x/comment',
+            '/api/v1/red-flags/x/comment',
             data = {
                 "comment": "Error in comment"
             }
@@ -143,7 +143,7 @@ class UserTestCase(unittest.TestCase):
     
     def test_user_regisration(self):
         """Test whether the API can register a user"""
-        res = self.client().post('/register', data=self.new_user)
+        res = self.client().post('/api/v1/register', data=self.new_user)
         self.assertEqual(res.status_code, 201)
         response_msg = json.loads(res.data.decode("UTF-8"))
         self.assertEqual(201, response_msg["status"])
@@ -151,11 +151,11 @@ class UserTestCase(unittest.TestCase):
 
     def test_user_login(self):
         """Test whether the API can login a user"""
-        res = self.client().post('/login', data=self.registered_user)
+        res = self.client().post('/api/v1/login', data=self.registered_user)
         response_msg = json.loads(res.data.decode("UTF-8"))
         self.assertEqual("User with username 'jondo' doesn't exist!", response_msg["message"])
-        res = self.client().post('/register', data=self.new_user)
-        res = self.client().post('/login', data=self.registered_user)
+        res = self.client().post('/api/v1/register', data=self.new_user)
+        res = self.client().post('/api/v1/login', data=self.registered_user)
         response_msg = json.loads(res.data.decode("UTF-8"))
         self.assertEqual("Logged in as jondo", response_msg["message"])
 
