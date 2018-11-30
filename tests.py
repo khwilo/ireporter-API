@@ -139,6 +139,9 @@ class UserTestCase(unittest.TestCase):
         """Test whether the API can register a user"""
         res = self.client().post('/register', data=self.users)
         self.assertEqual(res.status_code, 201)
+        response_msg = json.loads(res.data.decode("UTF-8"))
+        self.assertEqual(201, response_msg["status"])
+        self.assertEqual("Create user record", response_msg["data"][0]["message"])
 
 if __name__ == "__main__":
     unittest.main()
