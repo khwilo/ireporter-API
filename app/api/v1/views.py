@@ -95,3 +95,26 @@ class RedFlagLocation(Resource):
                 }
         return {'message': "incidence id must be an Integer"}, 400
         
+class RedFlagComment(Resource):
+    """Allows a request on a single RedFlag comment"""
+    def put(self, id):
+        parser = reqparse.RequestParser()
+        parser.add_argument('comment', type=str, required=True, help='Comment cannot be blank!')
+        data = parser.parse_args()
+
+        if id.isdigit():
+            incidence = IncidenceModel.get_incidence_by_id(int(id))
+            if incidence == {}:
+                return {'message': "red flag with id {} doesn't exit".format(id)}, 404
+            else:
+                incidence.update(data)
+                return {
+                    "status": 200,
+                    "data": [{
+                        "id": id,
+                        "message": "Updated red-flag record’s comment"
+                    }]
+                }
+        else:
+            return {'message': "incidence id must be an Integer"}, 400
+    
