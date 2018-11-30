@@ -61,5 +61,22 @@ class IncidenceTestCase(unittest.TestCase):
         res = self.client().delete('/red-flags/a')
         self.assertEqual(res.status_code, 400) # Test that only integer ids are allowed
 
+    def test_edit_red_flag_location(self):
+        """Test whether the API can edit a red flag location"""
+        res = self.client().post('/red-flags', data=self.incidences) # Create a red-flag
+        self.assertEqual(res.status_code, 201)
+        res = self.client().put(
+            '/red-flags/1/location',
+            data = {
+                "location": "5S10E"
+            }
+        )
+        self.assertEqual(res.status_code, 200)
+        response_msg = json.loads(res.data.decode("UTF-8"))
+        self.assertEqual("Updated red-flag record’s location", response_msg["data"][0]["message"])
+        res = self.client().get('/red-flags/1')
+        response_msg = json.loads(res.data.decode("UTF-8"))
+        self.assertEqual("5S10E", response_msg["data"][0]["location"])
+
 if __name__ == "__main__":
     unittest.main()
