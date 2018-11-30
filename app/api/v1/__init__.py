@@ -7,3 +7,4 @@ api_blueprint = Blueprint("api", __name__)
 api = Api(api_blueprint)
 
 api.add_resource(RedFlagList, '/red-flags')
+api.add_resource(RedFlag, '/red-flags/<id>')
