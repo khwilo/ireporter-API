@@ -48,9 +48,9 @@ class IncidenceTestCase(unittest.TestCase):
 
     def test_delete_one_red_flag(self):
         """Test whether the API can delete a red flag"""
-        res = self.client().post('/red-flags', data=self.incidences)
+        res = self.client().post('/red-flags', data=self.incidences) # Create a red-flag
         self.assertEqual(res.status_code, 201)
-        res = self.client().delete('/red-flags/1')
+        res = self.client().delete('/red-flags/1') # Delete the created red-flag
         self.assertEqual(res.status_code, 200)
         response_msg = json.loads(res.data.decode("UTF-8"))
         self.assertEqual("red-flag record has been deleted", response_msg["data"][0]["message"])
