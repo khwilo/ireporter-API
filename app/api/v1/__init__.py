@@ -12,3 +12,4 @@ api.add_resource(RedFlagLocation, '/red-flags/<id>/location')
 api.add_resource(RedFlagComment, '/red-flags/<id>/comment')
 
 api.add_resource(UserRegistration, '/register')
+api.add_resource(UserLogin, '/login')

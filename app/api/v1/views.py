@@ -163,7 +163,7 @@ class UserRegistration(Resource):
         if next(filter(lambda u: u['username'] == username, users), None):
             return {
                 'message': "A user with the username '{}' already exists!".format(username)
-            }, 404
+            }
         
         UserModel.add_a_user(user.user_as_dict())
         return {
@@ -175,3 +175,23 @@ class UserRegistration(Resource):
                 }
             ]
         }, 201
+
+class UserLogin(Resource):
+    '''Allow a registered user to login'''
+    def post(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument('username', type=str, required=True, help='Username cannot be blank!')
+        parser.add_argument('password', type=str, required=True, help='Password cannot be blank!')
+        data = parser.parse_args()
+
+        current_user = UserModel.get_user_by_username(data['username'])
+
+        if not current_user:
+            return {'message': "User with username '{}' doesn't exist!".format(data['username'])}, 400
+
+        if data['password'] == current_user['password']:
+            return {
+                'message': 'Logged in as {}'.format(current_user['username']),
+            }, 200
+        else:
+            return {'message': 'Wrong credentials'}, 401
