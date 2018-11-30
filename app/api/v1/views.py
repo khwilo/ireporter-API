@@ -1,6 +1,6 @@
 from flask_restful import reqparse, Resource
 
-from app.api.v1.models.models import IncidenceModel
+from app.api.v1.models.incidence import IncidenceModel
 
 parser = reqparse.RequestParser()
 parser.add_argument('type', type=str, required=True, help='Type cannot be blank!')

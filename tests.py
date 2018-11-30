@@ -3,7 +3,7 @@ import os
 import json
 
 from app import create_app
-from app.api.v1.models.models import IncidenceModel
+from app.api.v1.models.incidence import IncidenceModel
 
 class IncidenceTestCase(unittest.TestCase):
     """This class represents the Incidence test case"""
