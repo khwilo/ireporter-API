@@ -1,6 +1,7 @@
 from flask_restful import reqparse, Resource
 
 from app.api.v1.models.incidence import IncidenceModel
+from app.api.v1.models.user import UserModel
 
 parser = reqparse.RequestParser()
 parser.add_argument('type', type=str, required=True, help='Type cannot be blank!')
@@ -117,4 +118,60 @@ class RedFlagComment(Resource):
                 }
         else:
             return {'message': "red-flag id must be an Integer"}, 400
-    
+
+# USER MODEL #
+class UserRegistration(Resource):
+    """Registers a new user"""
+    def post(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument('firstname', type=str, required=True, help='Firstname cannot be blank!')
+        parser.add_argument('lastname', type=str, required=True, help='Lastname cannot be blank!')
+        parser.add_argument('othernames', type=str, required=True, help='Othernames cannot be blank!')
+        parser.add_argument('email', type=str, required=True, help='Email cannot be blank!')
+        parser.add_argument('phoneNumber', type=str, required=True, help='PhoneNumber cannot be blank!')
+        parser.add_argument('username', type=str, required=True, help='Username cannot be blank!')
+        parser.add_argument('isAdmin', type=bool, required=True, help='IsAdmin cannot be blank!')
+        parser.add_argument('password', type=str, required=True, help='Password cannot be blank!')
+        data = parser.parse_args()
+
+        # Create an instance of the user
+        user = UserModel(
+            firstname = data['firstname'],
+            lastname = data['lastname'],
+            othernames = data['othernames'],
+            email = data['email'],
+            phoneNumber = data['phoneNumber'],
+            username = data['username'],
+            isAdmin = data['isAdmin'],
+            password = data['password']
+        )
+
+        username = data['username']
+        password = data['password']
+
+        # Validate the username
+        if username.isdigit():
+            return {'message': 'username cannot consist of digits only'}, 400
+        if not username or not username.split():
+            return {'message': 'username cannot be empty'}
+
+        if not password or not password.split():
+            return {'message': 'password cannot be empty'}
+        
+        users = UserModel.get_all_users() # Get all list of users 
+
+        if next(filter(lambda u: u['username'] == username, users), None):
+            return {
+                'message': "A user with the username '{}' already exists!".format(username)
+            }, 404
+        
+        UserModel.add_a_user(user.user_as_dict())
+        return {
+            "status": 201,
+            "data": [
+                {
+                    "id": user.get_user_id(),
+                    "message": "Create user record",
+                }
+            ]
+        }, 201
