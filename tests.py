@@ -4,6 +4,7 @@ import json
 
 from app import create_app
 from app.api.v1.models.incidence import IncidenceModel
+from app.api.v1.models.user import UserModel, USERS
 
 class IncidenceTestCase(unittest.TestCase):
     """This class represents the Incidence test case"""
@@ -151,8 +152,15 @@ class UserTestCase(unittest.TestCase):
     def test_user_login(self):
         """Test whether the API can login a user"""
         res = self.client().post('/login', data=self.registered_user)
-        self.assertEqual(res.status_code, 201)
-      
+        response_msg = json.loads(res.data.decode("UTF-8"))
+        self.assertEqual("User with username 'jondo' doesn't exist!", response_msg["message"])
+        res = self.client().post('/register', data=self.new_user)
+        res = self.client().post('/login', data=self.registered_user)
+        response_msg = json.loads(res.data.decode("UTF-8"))
+        self.assertEqual("Logged in as jondo", response_msg["message"])
+
+    def tearDown(self):
+        del USERS[:]
 
 if __name__ == "__main__":
     unittest.main()
