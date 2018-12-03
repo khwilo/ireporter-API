@@ -15,25 +15,30 @@ class RedFlagList(Resource):
     def post(self):
         data = parser.parse_args()
 
-        red_flag = IncidenceModel(
+        current_user = get_jwt_identity()
+        user = UserModel.get_user_by_username(current_user)
+
+        
+        if not user['isAdmin']:
+            red_flag = IncidenceModel(
                 createdBy = 1,
                 _type = data['type'],
                 comment = data['comment'],
                 location = data['location']
             )
 
-        IncidenceModel.insert_an_incidence(red_flag.incidence_as_dict())
+            IncidenceModel.insert_an_incidence(red_flag.incidence_as_dict())
 
-        return {
-            "status": 201,
-            "data": [
-                {
-                    "id": red_flag.get_id(),
-                    "message": "Create red-flag record"
-                }
-            ]
-        }, 201
-    
+            return {
+                "status": 201,
+                "data": [
+                    {
+                        "id": red_flag.get_id(),
+                        "message": "Create red-flag record"
+                    }
+                ]
+            }, 201
+        return {'message': 'Only regular users can create a red-flag'}, 401
     
     def get(self):
         incidences = IncidenceModel.get_all_incidences()
