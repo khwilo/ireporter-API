@@ -15,6 +15,7 @@ Jinja2==2.10
 MarkupSafe==1.1.0
 more-itertools==4.3.0
 nose2==0.8.0
+passlib==1.7.1
 pathlib2==2.3.3
 pluggy==0.8.0
 py==1.7.0
