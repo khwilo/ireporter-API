@@ -11,6 +11,7 @@ parser.add_argument('comment', type=str, required=True, help='Comment cannot be 
 
 class RedFlagList(Resource):
     """Allows a request on a list of RedFlag items"""
+    @jwt_required
     def post(self):
         data = parser.parse_args()
 
