@@ -20,6 +20,7 @@ class IncidenceTestCase(unittest.TestCase):
         }
 
         self.true = True
+        self.false = False
 
         self.new_user = {
             "firstname": "john",
@@ -28,6 +29,17 @@ class IncidenceTestCase(unittest.TestCase):
             "email": "joe@test.com",
             "phoneNumber": "0700000000",
             "username": "jondo",
+            "isAdmin": self.false,
+            "password": "12345"
+        }
+
+        self.user_admin = {
+            "firstname": "jane",
+            "lastname": "doe",
+            "othernames": "bar",
+            "email": "jane@test.com",
+            "phoneNumber": "0711111111",
+            "username": "jando",
             "isAdmin": self.true,
             "password": "12345"
         }
@@ -49,9 +61,13 @@ class IncidenceTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 401)
         self.assertEqual("Missing Authorization Header", response_msg["msg"])
 
-    '''
-    def test_red_flag_creation(self):
-        """Test whether the API can create a red flag"""
+    
+    def test_authorized_red_flag_creation(self):
+        """
+        Test whether the API can create a red flag
+        Allow only registered registered regular user.
+        Raise an error if user is an administrator.
+        """
         r_user = self.client().post('/auth/register', data=self.new_user)
         l_user = self.client().post('/auth/login', data=self.user)
         response_msg = json.loads(l_user.data.decode("UTF-8"))
@@ -65,7 +81,7 @@ class IncidenceTestCase(unittest.TestCase):
         response_msg = json.loads(res.data.decode("UTF-8"))
         self.assertEqual(201, response_msg["status"])
         self.assertEqual("Create red-flag record", response_msg["data"][0]["message"])
-    '''
+    
     '''
     def test_fetching_all_red_flags(self):
         """Test whether the API can fetch all red flags"""
