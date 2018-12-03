@@ -149,7 +149,7 @@ class UserTestCase(unittest.TestCase):
     
     def test_user_regisration(self):
         """Test whether the API can register a user"""
-        res = self.client().post('/api/v1/register', data=self.new_user)
+        res = self.client().post('/auth/register', data=self.new_user)
         self.assertEqual(res.status_code, 201)
         response_msg = json.loads(res.data.decode("UTF-8"))
         self.assertEqual(201, response_msg["status"])
@@ -157,18 +157,18 @@ class UserTestCase(unittest.TestCase):
 
     def test_user_login(self):
         """Test whether the API can login a user"""
-        res = self.client().post('/api/v1/login', data=self.registered_user)
+        res = self.client().post('/auth/login', data=self.registered_user)
         response_msg = json.loads(res.data.decode("UTF-8"))
         self.assertEqual("User with username 'jondo' doesn't exist!", response_msg["message"])
-        res = self.client().post('/api/v1/register', data=self.new_user)
-        res = self.client().post('/api/v1/login', data=self.registered_user)
+        res = self.client().post('/auth/register', data=self.new_user)
+        res = self.client().post('/auth/login', data=self.registered_user)
         response_msg = json.loads(res.data.decode("UTF-8"))
         self.assertEqual("Logged in as jondo", response_msg["message"])
-        res = self.client().post('/api/v1/register', data=self.new_user)
-        res = self.client().post('/api/v1/login', data=self.wrong_user_password)
+        res = self.client().post('/auth/register', data=self.new_user)
+        res = self.client().post('/auth/login', data=self.wrong_user_password)
         response_msg = json.loads(res.data.decode("UTF-8"))
         self.assertEqual("Wrong credentials", response_msg["message"])
-
+    
     def tearDown(self):
         del USERS[:]
 
