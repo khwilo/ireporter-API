@@ -1,5 +1,6 @@
 '''This module represents a User entity'''
 from datetime import datetime
+from passlib.hash import pbkdf2_sha256 as sha256
 
 USERS = []
 
@@ -20,6 +21,14 @@ class UserModel:
     def get_user_id(self):
         '''Returns the id of the user'''
         return self.id
+
+    @staticmethod
+    def generate_password_hash(password):
+        return sha256.hash(password)
+
+    @staticmethod
+    def verify_password_hash(password, _hash):
+        return sha256.verify(password, _hash)
 
     @staticmethod
     def add_a_user(user):
