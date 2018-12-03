@@ -1,4 +1,5 @@
 from flask_restful import reqparse, Resource
+from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, get_jwt_identity
 
 from app.api.v1.models.incidence import IncidenceModel
 from app.api.v1.models.user import UserModel
@@ -166,12 +167,17 @@ class UserRegistration(Resource):
             }
         
         UserModel.add_a_user(user.user_as_dict())
+        access_token = create_access_token(identity=data['username'])
+        refresh_token = create_refresh_token(identity=data['username'])
+
         return {
             "status": 201,
             "data": [
                 {
                     "id": user.get_user_id(),
                     "message": "Create user record",
+                    "access_token": access_token,
+                    "refresh_token": refresh_token
                 }
             ]
         }, 201
@@ -190,8 +196,12 @@ class UserLogin(Resource):
             return {'message': "User with username '{}' doesn't exist!".format(data['username'])}, 400
 
         if UserModel.verify_password_hash(data['password'], current_user['password']):
+            access_token = create_access_token(identity=data['username'])
+            refresh_token = create_refresh_token(identity=data['username'])
             return {
                 'message': 'Logged in as {}'.format(current_user['username']),
+                'access_token': access_token,
+                'refresh_token': refresh_token
             }, 200
         else:
             return {'message': 'Wrong credentials'}, 401
