@@ -143,7 +143,7 @@ class UserRegistration(Resource):
             phoneNumber = data['phoneNumber'],
             username = data['username'],
             isAdmin = data['isAdmin'],
-            password = data['password']
+            password = UserModel.generate_password_hash(data['password'])
         )
 
         username = data['username']
@@ -189,7 +189,7 @@ class UserLogin(Resource):
         if not current_user:
             return {'message': "User with username '{}' doesn't exist!".format(data['username'])}, 400
 
-        if data['password'] == current_user['password']:
+        if UserModel.verify_password_hash(data['password'], current_user['password']):
             return {
                 'message': 'Logged in as {}'.format(current_user['username']),
             }, 200
