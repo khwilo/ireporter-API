@@ -19,69 +19,104 @@ class IncidenceTestCase(unittest.TestCase):
             "location":  "12NE"
         }
 
-        self.true = True
-        self.false = False
-
-        self.new_user = {
+        self.regular_user = {
             "firstname": "john",
             "lastname": "doe",
             "othernames": "foo",
             "email": "joe@test.com",
             "phoneNumber": "0700000000",
             "username": "jondo",
-            "isAdmin": self.false,
+            "isAdmin": False,
             "password": "12345"
         }
 
-        self.user_admin = {
+        self.regular_user_login = {
+            "username": "jondo",
+            "password": "12345"
+        }
+
+        self.admin_user = {
             "firstname": "jane",
             "lastname": "doe",
             "othernames": "bar",
             "email": "jane@test.com",
             "phoneNumber": "0711111111",
-            "username": "jando",
-            "isAdmin": self.true,
-            "password": "12345"
+            "username": "bando",
+            "isAdmin": True,
+            "password": "56789"
         }
 
-        self.user = {
-            "username": "jondo",
-            "password": "12345"
+        self.admin_user_login = {
+            "username": "bando",
+            "password": "56789"
         }
+
+    def get_accept_content_type_headers(self):
+        return {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        }
+
+    def get_authentication_headers(self, access_token):
+        authentication_headers = self.get_accept_content_type_headers()
+        authentication_headers['Authorization'] = "Bearer {}".format(access_token)
+        return authentication_headers
     
     def test_unauthorized_red_flag_creation(self):
         """
         Test that an unauthorized red flag creation results in a 401 error.
         Context: Provide no authorization header
         """
-        r_user = self.client().post('/auth/register', data=self.new_user)
-        l_user = self.client().post('/auth/login', data=self.user)
-        res = self.client().post('/api/v1/red-flags', data=self.incidences)
+        r_user = self.client().post('/auth/register', headers=self.get_accept_content_type_headers(), 
+            data=json.dumps(self.regular_user))
+        l_user = self.client().post('/auth/login', headers=self.get_accept_content_type_headers(), 
+            data=json.dumps(self.regular_user_login))
+        res = self.client().post('/api/v1/red-flags', headers=self.get_accept_content_type_headers(), 
+            data=json.dumps(self.incidences), content_type="application/json")
         response_msg = json.loads(res.data.decode("UTF-8"))
         self.assertEqual(res.status_code, 401)
         self.assertEqual("Missing Authorization Header", response_msg["msg"])
 
     
-    def test_authorized_red_flag_creation(self):
+    def test_admin_cannot_create_red_flag(self):
+        """
+        Test that administrators are not allowed to create red flags.
+        """
+        res = self.client().post('/auth/register', headers=self.get_accept_content_type_headers(), 
+            data=json.dumps(self.admin_user))
+        self.assertEqual(res.status_code, 201)
+        res = self.client().post('/auth/login', headers=self.get_accept_content_type_headers(),
+            data=json.dumps(self.admin_user_login))
+        self.assertEqual(res.status_code, 200)
+        
+        response_msg = json.loads(res.data.decode("UTF-8"))
+        access_token = response_msg['access_token']
+        res = self.client().post('/api/v1/red-flags', headers=self.get_authentication_headers(access_token), 
+            data=json.dumps(self.incidences))
+        self.assertEqual(res.status_code, 401)
+        response_msg = json.loads(res.data.decode("UTF-8"))
+        self.assertEqual("Only regular users can create a red-flag", response_msg["message"])
+
+    
+    def test_authorized_regular_user_can_create_red_flag(self):
         """
         Test whether the API can create a red flag
-        Allow only registered registered regular user.
+        Allow only registered regular user.
         Raise an error if user is an administrator.
         """
-        r_user = self.client().post('/auth/register', data=self.new_user)
-        l_user = self.client().post('/auth/login', data=self.user)
-        response_msg = json.loads(l_user.data.decode("UTF-8"))
+        res = self.client().post('/auth/register', headers=self.get_accept_content_type_headers(), 
+            data=json.dumps(self.regular_user))
+        res = self.client().post('/auth/login', headers=self.get_accept_content_type_headers(), 
+            data=json.dumps(self.regular_user_login))
+        response_msg = json.loads(res.data.decode("UTF-8"))
         access_token = response_msg['access_token']
-        headers = {
-            "content_type": "application/json",
-            "Authorization": "Bearer " + access_token 
-        }
-        res = self.client().post('/api/v1/red-flags', headers=headers, data=self.incidences)
+        res = self.client().post('/api/v1/red-flags', headers=self.get_authentication_headers(access_token), 
+            data=json.dumps(self.incidences))
         self.assertEqual(res.status_code, 201)
         response_msg = json.loads(res.data.decode("UTF-8"))
         self.assertEqual(201, response_msg["status"])
         self.assertEqual("Create red-flag record", response_msg["data"][0]["message"])
-    
+
     '''
     def test_fetching_all_red_flags(self):
         """Test whether the API can fetch all red flags"""
