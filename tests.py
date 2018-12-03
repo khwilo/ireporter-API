@@ -140,6 +140,12 @@ class UserTestCase(unittest.TestCase):
             "username": "jondo",
             "password": "12345"
         }
+
+        # Provide a user with a wrong password
+        self.wrong_user_password = {
+            "username": "jondo",
+            "password": "wrong_password"
+        }
     
     def test_user_regisration(self):
         """Test whether the API can register a user"""
@@ -158,6 +164,10 @@ class UserTestCase(unittest.TestCase):
         res = self.client().post('/api/v1/login', data=self.registered_user)
         response_msg = json.loads(res.data.decode("UTF-8"))
         self.assertEqual("Logged in as jondo", response_msg["message"])
+        res = self.client().post('/api/v1/register', data=self.new_user)
+        res = self.client().post('/api/v1/login', data=self.wrong_user_password)
+        response_msg = json.loads(res.data.decode("UTF-8"))
+        self.assertEqual("Wrong credentials", response_msg["message"])
 
     def tearDown(self):
         del USERS[:]
