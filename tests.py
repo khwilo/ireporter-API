@@ -184,6 +184,7 @@ class IncidenceTestCase(unittest.TestCase):
         self.assertEqual(IncidenceModel.get_incidence_by_id(1), response_msg["data"][0])
 
     def test_non_integer_id_not_allowed(self):
+        """Test the API doesn't allow non integer values"""
         res = self.client().post('/auth/register', 
             headers=self.get_accept_content_type_headers(), 
             data=json.dumps(self.regular_user))
@@ -202,6 +203,24 @@ class IncidenceTestCase(unittest.TestCase):
         response_msg = json.loads(res.data.decode("UTF-8"))
         self.assertEqual("red-flag id must be an Integer", response_msg["message"])
         self.assertEqual(res.status_code, 400)
+
+    def test_an_empty_list_cannot_be_modified(self):
+        """Test that the API cannot allow empty lists to be modified"""
+        res = self.client().post('/auth/register', 
+            headers=self.get_accept_content_type_headers(), 
+            data=json.dumps(self.regular_user))
+        self.assertEqual(res.status_code, 201)
+        res = self.client().post('/auth/login', 
+            headers=self.get_accept_content_type_headers(), 
+            data=json.dumps(self.regular_user_login))
+        self.assertEqual(res.status_code, 200)
+        response_msg = json.loads(res.data.decode("UTF-8"))
+        access_token = response_msg['access_token']
+        res = self.client().get('/api/v1/red-flags/1', headers=self.get_authentication_headers(access_token))
+        response_msg = json.loads(res.data.decode("UTF-8"))
+        self.assertEqual("red flag with id 1 doesn't exist", response_msg["message"])
+        self.assertEqual(res.status_code, 404)
+        
 
     '''
     def test_delete_one_red_flag(self):
