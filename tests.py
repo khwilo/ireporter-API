@@ -16,7 +16,7 @@ class IncidenceTestCase(unittest.TestCase):
             "createdBy": 1,
             "type": "RED-FLAG",
             "comment":  "comment",
-            "location":  "12NE"
+            "location":  "12N3E"
         }
 
         self.regular_user = {
@@ -207,6 +207,18 @@ class IncidenceTestCase(unittest.TestCase):
         res = self.client().delete('/api/v1/red-flags/a', 
             headers=self.get_authentication_headers(access_token)) # Try deleting a red flag with wrong ID type
         self.assertEqual(res.status_code, 400)
+        res = self.client().put(
+            '/api/v1/red-flags/1a/location', 
+            headers=self.get_authentication_headers(access_token), 
+            data=json.dumps(
+                {
+                    "location": "5S10E"
+                }
+            )
+        ) # Try updating a red flag with wrong ID type
+        response_msg = json.loads(res.data.decode("UTF-8"))
+        self.assertEqual("red-flag id must be an Integer", response_msg["message"])
+        self.assertEqual(res.status_code, 400)
 
     def test_an_empty_list_cannot_be_modified(self):
         """Test that the API cannot allow empty lists to be modified"""
@@ -227,6 +239,16 @@ class IncidenceTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 404)
         res = self.client().delete('/api/v1/red-flags/2', 
             headers=self.get_authentication_headers(access_token)) # Delete a non-existent red flag record
+        self.assertEqual(res.status_code, 404)
+        res = self.client().put(
+            'api/v1/red-flags/3/location', 
+            headers=self.get_authentication_headers(access_token), 
+            data=json.dumps(
+                {
+                    "location": "5S10E"
+                }
+            )
+        ) # Edit a non-existent red flag record
         self.assertEqual(res.status_code, 404)
         
 
@@ -272,33 +294,41 @@ class IncidenceTestCase(unittest.TestCase):
         )
         self.assertEqual(res.status_code, 401)
 
-    '''
+    
     def test_edit_red_flag_location(self):
         """Test whether the API can edit a red flag location"""
-        res = self.client().post('/api/v1/red-flags', data=self.incidences) # Create a red-flag
+        res = self.client().post('/auth/register', 
+            headers=self.get_accept_content_type_headers(), 
+            data=json.dumps(self.regular_user))
+        self.assertEqual(res.status_code, 201)
+        res = self.client().post('/auth/login', 
+            headers=self.get_accept_content_type_headers(), 
+            data=json.dumps(self.regular_user_login))
+        self.assertEqual(res.status_code, 200)
+        response_msg = json.loads(res.data.decode("UTF-8"))
+        access_token = response_msg['access_token']
+        res = self.client().post('/api/v1/red-flags', 
+            headers=self.get_authentication_headers(access_token), 
+            data=json.dumps(self.incidences)) # Create a red-flag
         self.assertEqual(res.status_code, 201)
         res = self.client().put(
-            '/api/v1/red-flags/1/location',
-            data = {
-                "location": "5S10E"
-            }
+            '/api/v1/red-flags/1/location', 
+            headers=self.get_authentication_headers(access_token), 
+            data=json.dumps(
+                {
+                    "location": "5S10E"
+                }
+            )
         )
         self.assertEqual(res.status_code, 200)
         response_msg = json.loads(res.data.decode("UTF-8"))
         self.assertEqual("Updated red-flag record’s location", response_msg["data"][0]["message"])
-        res = self.client().get('/api/v1/red-flags/1')
+        res = self.client().get('/api/v1/red-flags/1', 
+            headers=self.get_authentication_headers(access_token))
         response_msg = json.loads(res.data.decode("UTF-8"))
         self.assertEqual("5S10E", response_msg["data"][0]["location"])
-        res = self.client().put(
-            '/api/v1/red-flags/1a/location',
-            data = {
-                "location": "5S10E"
-            }
-        )
-        response_msg = json.loads(res.data.decode("UTF-8"))
-        self.assertEqual("red-flag id must be an Integer", response_msg["message"])
-        self.assertEqual(res.status_code, 400)
 
+    '''
     def test_edit_red_flag_comment(self):
         """Test whether the API can edit a red flag location"""
         res = self.client().post('/api/v1/red-flags', data=self.incidences) # Create a red-flag
