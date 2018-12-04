@@ -109,6 +109,7 @@ class RedFlagLocation(Resource):
         
 class RedFlagComment(Resource):
     """Allows a request on a single RedFlag comment"""
+    @jwt_required
     def put(self, id):
         parser = reqparse.RequestParser()
         parser.add_argument('comment', type=str, required=True, help='Comment cannot be blank!')

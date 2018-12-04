@@ -182,76 +182,7 @@ class IncidenceTestCase(unittest.TestCase):
         response_msg = json.loads(res.data.decode("UTF-8"))
         self.assertEqual(200, response_msg["status"])
         self.assertEqual(IncidenceModel.get_incidence_by_id(1), response_msg["data"][0])
-
-    def test_non_integer_id_not_allowed(self):
-        """Test the API doesn't allow non integer values"""
-        res = self.client().post('/auth/register', 
-            headers=self.get_accept_content_type_headers(), 
-            data=json.dumps(self.regular_user))
-        self.assertEqual(res.status_code, 201)
-        res = self.client().post('/auth/login', 
-            headers=self.get_accept_content_type_headers(), 
-            data=json.dumps(self.regular_user_login))
-        self.assertEqual(res.status_code, 200)
-        response_msg = json.loads(res.data.decode("UTF-8"))
-        access_token = response_msg['access_token']
-        res = self.client().post('/api/v1/red-flags', 
-            headers=self.get_authentication_headers(access_token), 
-            data=json.dumps(self.incidences))
-        self.assertEqual(res.status_code, 201)
-        res = self.client().get('/api/v1/red-flags/i', 
-            headers=self.get_authentication_headers(access_token)) # Try fetching a red flag with wrong ID type
-        response_msg = json.loads(res.data.decode("UTF-8"))
-        self.assertEqual("red-flag id must be an Integer", response_msg["message"])
-        self.assertEqual(res.status_code, 400)
-        res = self.client().delete('/api/v1/red-flags/a', 
-            headers=self.get_authentication_headers(access_token)) # Try deleting a red flag with wrong ID type
-        self.assertEqual(res.status_code, 400)
-        res = self.client().put(
-            '/api/v1/red-flags/1a/location', 
-            headers=self.get_authentication_headers(access_token), 
-            data=json.dumps(
-                {
-                    "location": "5S10E"
-                }
-            )
-        ) # Try updating a red flag with wrong ID type
-        response_msg = json.loads(res.data.decode("UTF-8"))
-        self.assertEqual("red-flag id must be an Integer", response_msg["message"])
-        self.assertEqual(res.status_code, 400)
-
-    def test_an_empty_list_cannot_be_modified(self):
-        """Test that the API cannot allow empty lists to be modified"""
-        res = self.client().post('/auth/register', 
-            headers=self.get_accept_content_type_headers(), 
-            data=json.dumps(self.regular_user))
-        self.assertEqual(res.status_code, 201)
-        res = self.client().post('/auth/login', 
-            headers=self.get_accept_content_type_headers(), 
-            data=json.dumps(self.regular_user_login))
-        self.assertEqual(res.status_code, 200)
-        response_msg = json.loads(res.data.decode("UTF-8"))
-        access_token = response_msg['access_token']
-        res = self.client().get('/api/v1/red-flags/1', 
-            headers=self.get_authentication_headers(access_token)) # Fetch a non-existent red flag record
-        response_msg = json.loads(res.data.decode("UTF-8"))
-        self.assertEqual("red flag with id 1 doesn't exist", response_msg["message"])
-        self.assertEqual(res.status_code, 404)
-        res = self.client().delete('/api/v1/red-flags/2', 
-            headers=self.get_authentication_headers(access_token)) # Delete a non-existent red flag record
-        self.assertEqual(res.status_code, 404)
-        res = self.client().put(
-            'api/v1/red-flags/3/location', 
-            headers=self.get_authentication_headers(access_token), 
-            data=json.dumps(
-                {
-                    "location": "5S10E"
-                }
-            )
-        ) # Edit a non-existent red flag record
-        self.assertEqual(res.status_code, 404)
-        
-
+   
     def test_unauthorized_user_cannot_delete_a_red_flag(self):
         """Test the API cannot deletion of a red flag without authorization"""
         res = self.client().delete('/api/v1/red-flags/1')
@@ -328,33 +259,144 @@ class IncidenceTestCase(unittest.TestCase):
         response_msg = json.loads(res.data.decode("UTF-8"))
         self.assertEqual("5S10E", response_msg["data"][0]["location"])
 
-    '''
-    def test_edit_red_flag_comment(self):
-        """Test whether the API can edit a red flag location"""
-        res = self.client().post('/api/v1/red-flags', data=self.incidences) # Create a red-flag
-        self.assertEqual(res.status_code, 201)
+    def test_unauthorized_edit_of_a_red_flag_comment(self):
+        """
+        Test the API doesn't allowed unauthorized 
+        editing of a red flag comment
+        """
         res = self.client().put(
             '/api/v1/red-flags/1/comment',
-            data = {
-                "comment": "RED FLAG TEST TWO"
-            }
+            headers=self.get_accept_content_type_headers(), 
+            data=json.dumps(
+                {
+                    "comment": "RED FLAG COMMENT UPDATE"
+                }
+            )
+        )
+        self.assertEqual(res.status_code, 401)
+
+    
+    def test_edit_red_flag_comment(self):
+        """Test whether the API can edit a red flag comment"""
+        res = self.client().post('/auth/register', 
+            headers=self.get_accept_content_type_headers(), 
+            data=json.dumps(self.regular_user))
+        self.assertEqual(res.status_code, 201)
+        res = self.client().post('/auth/login', 
+            headers=self.get_accept_content_type_headers(), 
+            data=json.dumps(self.regular_user_login))
+        self.assertEqual(res.status_code, 200)
+        response_msg = json.loads(res.data.decode("UTF-8"))
+        access_token = response_msg['access_token']
+        res = self.client().post('/api/v1/red-flags', 
+            headers=self.get_authentication_headers(access_token), 
+            data=json.dumps(self.incidences)) # Create a red-flag
+        self.assertEqual(res.status_code, 201)
+        res = self.client().put(
+            '/api/v1/red-flags/1/comment', 
+            headers=self.get_authentication_headers(access_token), 
+            data=json.dumps(
+                {
+                     "comment": "RED FLAG COMMENT UPDATE"
+                }
+            )
         )
         self.assertEqual(res.status_code, 200)
         response_msg = json.loads(res.data.decode("UTF-8"))
         self.assertEqual("Updated red-flag record’s comment", response_msg["data"][0]["message"])
-        res = self.client().get('/api/v1/red-flags/1')
+        res = self.client().get('/api/v1/red-flags/1', headers=self.get_authentication_headers(access_token))
         response_msg = json.loads(res.data.decode("UTF-8"))
-        self.assertEqual("RED FLAG TEST TWO", response_msg["data"][0]["comment"])
-        res = self.client().put(
-            '/api/v1/red-flags/x/comment',
-            data = {
-                "comment": "Error in comment"
-            }
-        )
+        self.assertEqual("RED FLAG COMMENT UPDATE", response_msg["data"][0]["comment"])
+    
+    def test_non_integer_id_not_allowed(self):
+        """Test the API doesn't allow non integer values"""
+        res = self.client().post('/auth/register', 
+            headers=self.get_accept_content_type_headers(), 
+            data=json.dumps(self.regular_user))
+        self.assertEqual(res.status_code, 201)
+        res = self.client().post('/auth/login', 
+            headers=self.get_accept_content_type_headers(), 
+            data=json.dumps(self.regular_user_login))
+        self.assertEqual(res.status_code, 200)
+        response_msg = json.loads(res.data.decode("UTF-8"))
+        access_token = response_msg['access_token']
+        res = self.client().post('/api/v1/red-flags', 
+            headers=self.get_authentication_headers(access_token), 
+            data=json.dumps(self.incidences))
+        self.assertEqual(res.status_code, 201)
+        res = self.client().get('/api/v1/red-flags/i', 
+            headers=self.get_authentication_headers(access_token)) # Try fetching a red flag with wrong ID type
         response_msg = json.loads(res.data.decode("UTF-8"))
         self.assertEqual("red-flag id must be an Integer", response_msg["message"])
         self.assertEqual(res.status_code, 400)
-    '''
+        res = self.client().delete('/api/v1/red-flags/a', 
+            headers=self.get_authentication_headers(access_token)) # Try deleting a red flag with wrong ID type
+        self.assertEqual(res.status_code, 400)
+        res = self.client().put(
+            '/api/v1/red-flags/1a/location', 
+            headers=self.get_authentication_headers(access_token), 
+            data=json.dumps(
+                {
+                    "location": "5S10E"
+                }
+            )
+        ) # Try updating a red flag location with wrong ID type
+        response_msg = json.loads(res.data.decode("UTF-8"))
+        self.assertEqual("red-flag id must be an Integer", response_msg["message"])
+        self.assertEqual(res.status_code, 400)
+        res = self.client().put(
+            '/api/v1/red-flags/x/comment', 
+            headers=self.get_authentication_headers(access_token), 
+            data=json.dumps(
+                {
+                    "comment": "Error in comment"
+                }
+            )
+        ) # Try updating a red flag comment with wrong ID type
+        response_msg = json.loads(res.data.decode("UTF-8"))
+        self.assertEqual("red-flag id must be an Integer", response_msg["message"])
+        self.assertEqual(res.status_code, 400)
+
+    def test_an_empty_list_cannot_be_modified(self):
+        """Test that the API cannot allow empty lists to be modified"""
+        res = self.client().post('/auth/register', 
+            headers=self.get_accept_content_type_headers(), 
+            data=json.dumps(self.regular_user))
+        self.assertEqual(res.status_code, 201)
+        res = self.client().post('/auth/login', 
+            headers=self.get_accept_content_type_headers(), 
+            data=json.dumps(self.regular_user_login))
+        self.assertEqual(res.status_code, 200)
+        response_msg = json.loads(res.data.decode("UTF-8"))
+        access_token = response_msg['access_token']
+        res = self.client().get('/api/v1/red-flags/1', 
+            headers=self.get_authentication_headers(access_token)) # Fetch a non-existent red flag record
+        response_msg = json.loads(res.data.decode("UTF-8"))
+        self.assertEqual("red flag with id 1 doesn't exist", response_msg["message"])
+        self.assertEqual(res.status_code, 404)
+        res = self.client().delete('/api/v1/red-flags/2', 
+            headers=self.get_authentication_headers(access_token)) # Delete a non-existent red flag record
+        self.assertEqual(res.status_code, 404)
+        res = self.client().put(
+            'api/v1/red-flags/3/location', 
+            headers=self.get_authentication_headers(access_token), 
+            data=json.dumps(
+                {
+                    "location": "5S10E"
+                }
+            )
+        ) # Edit the location of a non-existent red flag record
+        self.assertEqual(res.status_code, 404)   
+        res = self.client().put(
+            'api/v1/red-flags/4/comment',
+            headers=self.get_authentication_headers(access_token), 
+            data=json.dumps(
+                {
+                    "comment": "RED FLAG COMMENT UPDATE"
+                }
+            )
+        )
+        self.assertEqual(res.status_code, 404) 
 
     def tearDown(self):
         del INCIDENCES[:]
