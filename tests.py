@@ -229,22 +229,36 @@ class IncidenceTestCase(unittest.TestCase):
         response_msg = json.loads(res.data.decode("UTF-8"))
         self.assertEqual("Missing Authorization Header", response_msg['msg'])
 
-    '''
     def test_delete_one_red_flag(self):
         """Test whether the API can delete a red flag"""
-        res = self.client().post('/api/v1/red-flags', data=self.incidences) # Create a red-flag
+        res = self.client().post('/auth/register', 
+            headers=self.get_accept_content_type_headers(), 
+            data=json.dumps(self.regular_user))
         self.assertEqual(res.status_code, 201)
-        res = self.client().delete('/api/v1/red-flags/1') # Delete the created red-flag
+        res = self.client().post('/auth/login', 
+            headers=self.get_accept_content_type_headers(), 
+            data=json.dumps(self.regular_user_login))
+        self.assertEqual(res.status_code, 200)
+        response_msg = json.loads(res.data.decode("UTF-8"))
+        access_token = response_msg['access_token']
+        res = self.client().post('/api/v1/red-flags', 
+            headers=self.get_authentication_headers(access_token), 
+            data=json.dumps(self.incidences)) # Create a red-flag
+        self.assertEqual(res.status_code, 201)
+        res = self.client().delete('/api/v1/red-flags/1', 
+            headers=self.get_authentication_headers(access_token)) # Delete the created red-flag
         self.assertEqual(res.status_code, 200)
         response_msg = json.loads(res.data.decode("UTF-8"))
         self.assertEqual("red-flag record has been deleted", response_msg["data"][0]["message"])
-        res = self.client().get('/api/v1/red-flags/1')
+        res = self.client().get('/api/v1/red-flags/1', 
+            headers=self.get_authentication_headers(access_token)) # Try accessing the deleted red flag
         self.assertEqual(res.status_code, 404)
-        res = self.client().delete('/api/v1/red-flags/2') # Test deletion of non-existent red flag record
-        self.assertEqual(res.status_code, 404)
-        res = self.client().delete('/api/v1/red-flags/a')
-        self.assertEqual(res.status_code, 400) # Test that only integer ids are allowed
+        # res = self.client().delete('/api/v1/red-flags/2') # Test deletion of non-existent red flag record
+        # self.assertEqual(res.status_code, 404)
+        # res = self.client().delete('/api/v1/red-flags/a')
+        # self.assertEqual(res.status_code, 400) # Test that only integer ids are allowed
 
+    '''
     def test_edit_red_flag_location(self):
         """Test whether the API can edit a red flag location"""
         res = self.client().post('/api/v1/red-flags', data=self.incidences) # Create a red-flag
