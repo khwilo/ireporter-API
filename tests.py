@@ -117,9 +117,23 @@ class IncidenceTestCase(unittest.TestCase):
         self.assertEqual(201, response_msg["status"])
         self.assertEqual("Create red-flag record", response_msg["data"][0]["message"])
 
+    def test_unauthorized_cannot_fetch_all_red_flags(self):
+        """
+        Test whether the API cannot allow a user to fetch all red flags 
+        without an access token
+        """
+        res = self.client().get('/api/v1/red-flags')
+        response_msg = json.loads(res.data.decode("UTF-8"))
+        self.assertEqual(res.status_code, 401)
+        self.assertEqual("Missing Authorization Header", response_msg["msg"])
+
     '''
     def test_fetching_all_red_flags(self):
         """Test whether the API can fetch all red flags"""
+        res = self.client().post('/auth/register', headers=self.get_accept_content_type_headers(), 
+            data=json.dumps(self.regular_user))
+        res = self.client().post('/auth/login', headers=self.get_accept_content_type_headers(), 
+            data=)
         res = self.client().post('/api/v1/red-flags', data=self.incidences)
         self.assertEqual(res.status_code, 201)
         res = self.client().get('/api/v1/red-flags')
