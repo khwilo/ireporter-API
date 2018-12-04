@@ -199,9 +199,13 @@ class IncidenceTestCase(unittest.TestCase):
             headers=self.get_authentication_headers(access_token), 
             data=json.dumps(self.incidences))
         self.assertEqual(res.status_code, 201)
-        res = self.client().get('/api/v1/red-flags/i', headers=self.get_authentication_headers(access_token))
+        res = self.client().get('/api/v1/red-flags/i', 
+            headers=self.get_authentication_headers(access_token)) # Try fetching a red flag with wrong ID type
         response_msg = json.loads(res.data.decode("UTF-8"))
         self.assertEqual("red-flag id must be an Integer", response_msg["message"])
+        self.assertEqual(res.status_code, 400)
+        res = self.client().delete('/api/v1/red-flags/a', 
+            headers=self.get_authentication_headers(access_token)) # Try deleting a red flag with wrong ID type
         self.assertEqual(res.status_code, 400)
 
     def test_an_empty_list_cannot_be_modified(self):
@@ -257,8 +261,6 @@ class IncidenceTestCase(unittest.TestCase):
         res = self.client().get('/api/v1/red-flags/1', 
             headers=self.get_authentication_headers(access_token)) # Try accessing the deleted red flag
         self.assertEqual(res.status_code, 404)
-        # res = self.client().delete('/api/v1/red-flags/a')
-        # self.assertEqual(res.status_code, 400) # Test that only integer ids are allowed
 
     '''
     def test_edit_red_flag_location(self):
