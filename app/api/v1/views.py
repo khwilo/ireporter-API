@@ -65,6 +65,7 @@ class RedFlag(Resource):
         else:
             return {'message': "red-flag id must be an Integer"}, 400
 
+    @jwt_required
     def delete(self, id):
         if id.isdigit():
             incidence = IncidenceModel.get_incidence_by_id(int(id))
