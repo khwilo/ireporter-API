@@ -127,21 +127,30 @@ class IncidenceTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 401)
         self.assertEqual("Missing Authorization Header", response_msg["msg"])
 
-    '''
+    
     def test_fetching_all_red_flags(self):
         """Test whether the API can fetch all red flags"""
-        res = self.client().post('/auth/register', headers=self.get_accept_content_type_headers(), 
-            data=json.dumps(self.regular_user))
-        res = self.client().post('/auth/login', headers=self.get_accept_content_type_headers(), 
-            data=)
-        res = self.client().post('/api/v1/red-flags', data=self.incidences)
-        self.assertEqual(res.status_code, 201)
-        res = self.client().get('/api/v1/red-flags')
-        self.assertEqual(res.status_code, 200)
+        res = self.client().post('/auth/register', 
+            headers=self.get_accept_content_type_headers(), 
+            data=json.dumps(self.regular_user)) # Register a new user
+        self.assertEqual(res.status_code, 201) # Confirm if the new user has been created
+        res = self.client().post('/auth/login', 
+            headers=self.get_accept_content_type_headers(), 
+            data=json.dumps(self.regular_user_login)) # Log in a registered user
+        self.assertEqual(res.status_code, 200) # Confirm if the registered user has been logged in
+        response_msg = json.loads(res.data.decode("UTF-8")) # Fetch the response message from loggin in
+        access_token = response_msg['access_token'] # Fetch the access token from loggin in
+        res = self.client().post('/api/v1/red-flags', 
+            headers=self.get_authentication_headers(access_token), 
+            data=json.dumps(self.incidences)) # Create a new post
+        self.assertEqual(res.status_code, 201) # Confirm if the new post has been created
+        res = self.client().get('/api/v1/red-flags', 
+            headers=self.get_authentication_headers(access_token)) # Fetch all posts that have been created
         response_msg = json.loads(res.data.decode("UTF-8"))
+        self.assertEqual(res.status_code, 200)
         self.assertEqual(200, response_msg["status"])
         self.assertEqual(IncidenceModel.get_all_incidences(), response_msg["data"])
-    '''
+    
     '''
     def test_fetching_one_red_flag(self):
         """Test whether the API can fetch one red flag"""
