@@ -1,4 +1,5 @@
 from flask_restful import reqparse, Resource
+from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, get_jwt_identity
 
 from app.api.v1.models.incidence import IncidenceModel
 from app.api.v1.models.user import UserModel
@@ -10,29 +11,36 @@ parser.add_argument('comment', type=str, required=True, help='Comment cannot be 
 
 class RedFlagList(Resource):
     """Allows a request on a list of RedFlag items"""
+    @jwt_required
     def post(self):
         data = parser.parse_args()
 
-        red_flag = IncidenceModel(
+        current_user = get_jwt_identity()
+        user = UserModel.get_user_by_username(current_user)
+
+        
+        if not user['isAdmin']:
+            red_flag = IncidenceModel(
                 createdBy = 1,
                 _type = data['type'],
                 comment = data['comment'],
                 location = data['location']
             )
 
-        IncidenceModel.insert_an_incidence(red_flag.incidence_as_dict())
+            IncidenceModel.insert_an_incidence(red_flag.incidence_as_dict())
 
-        return {
-            "status": 201,
-            "data": [
-                {
-                    "id": red_flag.get_id(),
-                    "message": "Create red-flag record"
-                }
-            ]
-        }, 201
+            return {
+                "status": 201,
+                "data": [
+                    {
+                        "id": red_flag.get_id(),
+                        "message": "Create red-flag record"
+                    }
+                ]
+            }, 201
+        return {'message': 'Only regular users can create a red-flag'}, 401
     
-    
+    @jwt_required
     def get(self):
         incidences = IncidenceModel.get_all_incidences()
         if incidences == []:
@@ -44,6 +52,7 @@ class RedFlagList(Resource):
     
 class RedFlag(Resource):
     """Allows a request on a single RedFlag item"""
+    @jwt_required
     def get(self, id):
         if id.isdigit():
             incidence = IncidenceModel.get_incidence_by_id(int(id))
@@ -56,6 +65,7 @@ class RedFlag(Resource):
         else:
             return {'message': "red-flag id must be an Integer"}, 400
 
+    @jwt_required
     def delete(self, id):
         if id.isdigit():
             incidence = IncidenceModel.get_incidence_by_id(int(id))
@@ -75,6 +85,7 @@ class RedFlag(Resource):
 
 class RedFlagLocation(Resource):
     """Allows a request on a single RedFlag Location"""
+    @jwt_required
     def put(self, id):
         parser = reqparse.RequestParser()
         parser.add_argument('location', type=str, required=True, help='Location cannot be blank!')
@@ -98,6 +109,7 @@ class RedFlagLocation(Resource):
         
 class RedFlagComment(Resource):
     """Allows a request on a single RedFlag comment"""
+    @jwt_required
     def put(self, id):
         parser = reqparse.RequestParser()
         parser.add_argument('comment', type=str, required=True, help='Comment cannot be blank!')
@@ -166,12 +178,17 @@ class UserRegistration(Resource):
             }
         
         UserModel.add_a_user(user.user_as_dict())
+        access_token = create_access_token(identity=data['username'])
+        refresh_token = create_refresh_token(identity=data['username'])
+
         return {
             "status": 201,
             "data": [
                 {
                     "id": user.get_user_id(),
                     "message": "Create user record",
+                    "access_token": access_token,
+                    "refresh_token": refresh_token
                 }
             ]
         }, 201
@@ -190,8 +207,12 @@ class UserLogin(Resource):
             return {'message': "User with username '{}' doesn't exist!".format(data['username'])}, 400
 
         if UserModel.verify_password_hash(data['password'], current_user['password']):
+            access_token = create_access_token(identity=data['username'])
+            refresh_token = create_refresh_token(identity=data['username'])
             return {
                 'message': 'Logged in as {}'.format(current_user['username']),
+                'access_token': access_token,
+                'refresh_token': refresh_token
             }, 200
         else:
             return {'message': 'Wrong credentials'}, 401
