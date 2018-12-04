@@ -222,6 +222,13 @@ class IncidenceTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 404)
         
 
+    def test_unauthorized_user_cannot_delete_a_red_flag(self):
+        """Test the API cannot deletion of a red flag without authorization"""
+        res = self.client().delete('/api/v1/red-flags/1')
+        self.assertEqual(res.status_code, 401)
+        response_msg = json.loads(res.data.decode("UTF-8"))
+        self.assertEqual("Missing Authorization Header", response_msg['msg'])
+
     '''
     def test_delete_one_red_flag(self):
         """Test whether the API can delete a red flag"""
