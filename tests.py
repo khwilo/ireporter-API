@@ -218,10 +218,13 @@ class IncidenceTestCase(unittest.TestCase):
     def test_unauthorized_edit_of_a_red_flag_location(self):
         """Test the API cannot edit a red flag location without authorization"""
         res = self.client().put(
-            'api/v1/red-flags/1/location',
-            data = {
-                "location": "5S10E"
-            }
+            'api/v1/red-flags/1/location', 
+            headers=self.get_accept_content_type_headers(), 
+            data=json.dumps(
+                {
+                    "location": "5S10E"
+                }
+            )
         )
         self.assertEqual(res.status_code, 401)
 
@@ -408,19 +411,19 @@ class UserTestCase(unittest.TestCase):
         """Define the test variables and initialize the application"""
         self.app = create_app(config_name="testing")
         self.client = self.app.test_client
-        true = True # specify value for isAdmin
-        self.new_user = {
+       
+        self.regular_user = {
             "firstname": "john",
             "lastname": "doe",
             "othernames": "foo",
             "email": "joe@test.com",
             "phoneNumber": "0700000000",
             "username": "jondo",
-            "isAdmin": true,
+            "isAdmin": False,
             "password": "12345"
         }
 
-        self.registered_user = {
+        self.regular_user_login = {
             "username": "jondo",
             "password": "12345"
         }
@@ -431,25 +434,49 @@ class UserTestCase(unittest.TestCase):
             "password": "wrong_password"
         }
     
+    def get_accept_content_type_headers(self):
+        return {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        }
+
     def test_user_regisration(self):
         """Test whether the API can register a user"""
-        res = self.client().post('/auth/register', data=self.new_user)
+        res = self.client().post('/auth/register', 
+            headers=self.get_accept_content_type_headers(), 
+            data=json.dumps(self.regular_user))
         self.assertEqual(res.status_code, 201)
         response_msg = json.loads(res.data.decode("UTF-8"))
         self.assertEqual(201, response_msg["status"])
         self.assertEqual("Create user record", response_msg["data"][0]["message"])
 
-    def test_user_login(self):
-        """Test whether the API can login a user"""
-        res = self.client().post('/auth/login', data=self.registered_user)
+    
+    def test_user_cannot_login_before_registration(self):
+        """Test the API cannot login a user before signing up"""
+        res = self.client().post('/auth/login', 
+            headers=self.get_accept_content_type_headers(), 
+            data=json.dumps(self.regular_user_login))
         response_msg = json.loads(res.data.decode("UTF-8"))
         self.assertEqual("User with username 'jondo' doesn't exist!", response_msg["message"])
-        res = self.client().post('/auth/register', data=self.new_user)
-        res = self.client().post('/auth/login', data=self.registered_user)
+
+    def test_user_can_login_after_registration(self):
+        """Test the API can login a user after signing up"""
+        res = self.client().post('/auth/register', 
+            headers=self.get_accept_content_type_headers(), 
+            data=json.dumps(self.regular_user))
+        res = self.client().post('/auth/login', 
+            headers=self.get_accept_content_type_headers(), 
+            data=json.dumps(self.regular_user_login))
         response_msg = json.loads(res.data.decode("UTF-8"))
         self.assertEqual("Logged in as jondo", response_msg["message"])
-        res = self.client().post('/auth/register', data=self.new_user)
-        res = self.client().post('/auth/login', data=self.wrong_user_password)
+    
+    def test_user_cannot_login_with_wrong_password(self):
+        res = self.client().post('/auth/register', 
+            headers=self.get_accept_content_type_headers(), 
+            data=json.dumps(self.regular_user))
+        res = self.client().post('/auth/login', 
+            headers=self.get_accept_content_type_headers(), 
+            data=json.dumps(self.wrong_user_password))
         response_msg = json.loads(res.data.decode("UTF-8"))
         self.assertEqual("Wrong credentials", response_msg["message"])
     
