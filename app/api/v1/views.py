@@ -85,6 +85,7 @@ class RedFlag(Resource):
 
 class RedFlagLocation(Resource):
     """Allows a request on a single RedFlag Location"""
+    @jwt_required
     def put(self, id):
         parser = reqparse.RequestParser()
         parser.add_argument('location', type=str, required=True, help='Location cannot be blank!')

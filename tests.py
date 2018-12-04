@@ -262,6 +262,16 @@ class IncidenceTestCase(unittest.TestCase):
             headers=self.get_authentication_headers(access_token)) # Try accessing the deleted red flag
         self.assertEqual(res.status_code, 404)
 
+    def test_unauthorized_edit_of_a_red_flag_location(self):
+        """Test the API cannot edit a red flag location without authorization"""
+        res = self.client().put(
+            'api/v1/red-flags/1/location',
+            data = {
+                "location": "5S10E"
+            }
+        )
+        self.assertEqual(res.status_code, 401)
+
     '''
     def test_edit_red_flag_location(self):
         """Test whether the API can edit a red flag location"""
