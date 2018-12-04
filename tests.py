@@ -151,21 +151,44 @@ class IncidenceTestCase(unittest.TestCase):
         self.assertEqual(200, response_msg["status"])
         self.assertEqual(IncidenceModel.get_all_incidences(), response_msg["data"])
     
-    '''
+    def test_unauthorized_user_cannot_fetch_one_red_flag(self):
+        """
+        Test that the API cannot allow one to fetch a specific red flag 
+        by its ID without providing an access token
+        """
+        res = self.client().get('/api/v1/red-flags/1')
+        response_msg = json.loads(res.data.decode("UTF-8"))
+        self.assertEqual(res.status_code, 401)
+
+    
     def test_fetching_one_red_flag(self):
         """Test whether the API can fetch one red flag"""
-        res = self.client().post('/api/v1/red-flags', data=self.incidences)
+        res = self.client().post('/auth/register', 
+            headers=self.get_accept_content_type_headers(), 
+            data=json.dumps(self.regular_user))
         self.assertEqual(res.status_code, 201)
-        res = self.client().get('/api/v1/red-flags/1')
+        res = self.client().post('/auth/login', 
+            headers=self.get_accept_content_type_headers(), 
+            data=json.dumps(self.regular_user_login))
+        self.assertEqual(res.status_code, 200)
+        response_msg = json.loads(res.data.decode("UTF-8"))
+        access_token = response_msg['access_token']
+        res = self.client().post('/api/v1/red-flags', 
+            headers=self.get_authentication_headers(access_token), 
+            data=json.dumps(self.incidences))
+        self.assertEqual(res.status_code, 201)
+        res = self.client().get('/api/v1/red-flags/1', headers=self.get_authentication_headers(access_token))
         self.assertEqual(res.status_code, 200)
         response_msg = json.loads(res.data.decode("UTF-8"))
         self.assertEqual(200, response_msg["status"])
         self.assertEqual(IncidenceModel.get_incidence_by_id(1), response_msg["data"][0])
-        res = self.client().get('/api/v1/red-flags/1-')
-        response_msg = json.loads(res.data.decode("UTF-8"))
-        self.assertEqual("red-flag id must be an Integer", response_msg["message"])
-        self.assertEqual(res.status_code, 400)
 
+        # res = self.client().get('/api/v1/red-flags/1-')
+        # response_msg = json.loads(res.data.decode("UTF-8"))
+        # self.assertEqual("red-flag id must be an Integer", response_msg["message"])
+        # self.assertEqual(res.status_code, 400)
+
+    '''
     def test_delete_one_red_flag(self):
         """Test whether the API can delete a red flag"""
         res = self.client().post('/api/v1/red-flags', data=self.incidences) # Create a red-flag
