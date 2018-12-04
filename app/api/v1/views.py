@@ -40,6 +40,7 @@ class RedFlagList(Resource):
             }, 201
         return {'message': 'Only regular users can create a red-flag'}, 401
     
+    @jwt_required
     def get(self):
         incidences = IncidenceModel.get_all_incidences()
         if incidences == []:
