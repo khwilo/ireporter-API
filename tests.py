@@ -216,9 +216,13 @@ class IncidenceTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 200)
         response_msg = json.loads(res.data.decode("UTF-8"))
         access_token = response_msg['access_token']
-        res = self.client().get('/api/v1/red-flags/1', headers=self.get_authentication_headers(access_token))
+        res = self.client().get('/api/v1/red-flags/1', 
+            headers=self.get_authentication_headers(access_token)) # Fetch a non-existent red flag record
         response_msg = json.loads(res.data.decode("UTF-8"))
         self.assertEqual("red flag with id 1 doesn't exist", response_msg["message"])
+        self.assertEqual(res.status_code, 404)
+        res = self.client().delete('/api/v1/red-flags/2', 
+            headers=self.get_authentication_headers(access_token)) # Delete a non-existent red flag record
         self.assertEqual(res.status_code, 404)
         
 
@@ -253,8 +257,6 @@ class IncidenceTestCase(unittest.TestCase):
         res = self.client().get('/api/v1/red-flags/1', 
             headers=self.get_authentication_headers(access_token)) # Try accessing the deleted red flag
         self.assertEqual(res.status_code, 404)
-        # res = self.client().delete('/api/v1/red-flags/2') # Test deletion of non-existent red flag record
-        # self.assertEqual(res.status_code, 404)
         # res = self.client().delete('/api/v1/red-flags/a')
         # self.assertEqual(res.status_code, 400) # Test that only integer ids are allowed
 
