@@ -52,6 +52,7 @@ class RedFlagList(Resource):
     
 class RedFlag(Resource):
     """Allows a request on a single RedFlag item"""
+    @jwt_required
     def get(self, id):
         if id.isdigit():
             incidence = IncidenceModel.get_incidence_by_id(int(id))
