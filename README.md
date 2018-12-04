@@ -12,5 +12,5 @@ This repository consists of implementation of the API endpoints for the [iReport
 - `DELETE '/api/v1/red-flags/<red-flag-id>` - Delete a specific red flag record.
 - `PUT '/api/v1/red-flags/<red-flag-id>/location'` - Edit the location of a specific red-flag record.
 - `PUT '/api/v1/red-flags/<red-flag-id>/comment'` - Edit the comment of a specific red-flag record.
-- `POST 'api/v1/register'` - Create a user record.
-- `POST 'api/v1/login` - Log in a user.  
+- `POST '/auth/register'` - Create a user record.
+- `POST '/auth/login` - Log in a user.  
