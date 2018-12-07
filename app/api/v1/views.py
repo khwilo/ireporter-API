@@ -67,21 +67,26 @@ class RedFlag(Resource):
 
     @jwt_required
     def delete(self, id):
-        if id.isdigit():
-            incidence = IncidenceModel.get_incidence_by_id(int(id))
-            if incidence == {}:
-                return {'message': "red flag with id {} doesn't exit".format(id)}, 404
+        current_user  = get_jwt_identity()
+        user = UserModel.get_user_by_username(current_user)
+        
+        if not user['isAdmin']:
+            if id.isdigit():
+                incidence = IncidenceModel.get_incidence_by_id(int(id))
+                if incidence == {}:
+                    return {'message': "red flag with id {} doesn't exit".format(id)}, 404
+                else:
+                    IncidenceModel.delete_by_id(int(id))
+                    return {
+                        "status": 200,
+                        "data": [{
+                            "id": int(id),
+                            "message": "red-flag record has been deleted"
+                        }]
+                    }, 200
             else:
-                IncidenceModel.delete_by_id(int(id))
-                return {
-                    "status": 200,
-                    "data": [{
-                        "id": int(id),
-                        "message": "red-flag record has been deleted"
-                    }]
-                }, 200
-        else:
-            return {'message': "incidence id must be an Integer"}, 400
+                return {'message': "incidence id must be an Integer"}, 400
+        return {'message': 'Only regular users can delete a red flag'}, 401
 
 class RedFlagLocation(Resource):
     """Allows a request on a single RedFlag Location"""
