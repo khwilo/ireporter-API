@@ -323,6 +323,66 @@ class IncidenceTestCase(unittest.TestCase):
             )
         )
         self.assertEqual(res.status_code, 401)
+
+    def test_edit_red_flag_status(self):
+        """Test the API can edit a red flag status"""
+        # Regular user registration
+        res = self.client().post('/auth/register', 
+            headers=self.get_accept_content_type_headers(), 
+            data=json.dumps(self.regular_user)
+        )
+        self.assertEqual(res.status_code, 201)
+
+        # Regular user login
+        res = self.client().post('/auth/login', 
+            headers=self.get_accept_content_type_headers(), 
+            data=json.dumps(self.regular_user_login)
+        )
+        self.assertEqual(res.status_code, 200)
+
+        response_msg = json.loads(res.data.decode("UTF-8"))
+        access_token = response_msg['access_token'] # Get access token for the regular user to create a red flag
+
+        # Regular user creates a post 
+        res = self.client().post("/api/v1/red-flags", 
+            headers=self.get_authentication_headers(access_token), 
+            data=json.dumps(self.incidences))
+        self.assertEqual(res.status_code, 201)
+
+        # Administrator registration
+        res = self.client().post('/auth/register', 
+            headers=self.get_accept_content_type_headers(), 
+            data=json.dumps(self.admin_user)
+        )
+        self.assertEqual(res.status_code, 201)
+
+         # Administrator login
+        res = self.client().post('/auth/login', 
+            headers=self.get_accept_content_type_headers(), 
+            data=json.dumps(self.admin_user_login)
+        )
+        self.assertEqual(res.status_code, 200)
+
+        response_msg = json.loads(res.data.decode("UTF-8"))
+        access_token = response_msg['access_token'] # Adminstrator's access token
+
+        # Adminstrator changes the red flag status
+        res = self.client().put(
+            "/api/v1/red-flags/1/status", 
+            headers=self.get_authentication_headers(access_token), 
+            data=json.dumps(
+                {
+                    "status": "RESOLVED"
+                }
+            )
+        )
+        response_msg = json.loads(res.data.decode("UTF-8"))
+        self.assertEqual(res.status_code, 200)
+        response_msg = json.loads(res.data.decode("UTF-8"))
+        self.assertEqual("Updated red-flag record's status", response_msg["data"][0]["message"])
+        res = self.client().get('/api/v1/red-flags/1', headers=self.get_authentication_headers(access_token))
+        response_msg = json.loads(res.data.decode("UTF-8"))
+        self.assertEqual("RESOLVED", response_msg["data"][0]["status"])
     
     def test_non_integer_id_not_allowed(self):
         """Test the API doesn't allow non integer values"""
@@ -373,6 +433,27 @@ class IncidenceTestCase(unittest.TestCase):
         self.assertEqual("red-flag id must be an Integer", response_msg["message"])
         self.assertEqual(res.status_code, 400)
 
+        res = self.client().post('/auth/register', 
+            headers=self.get_accept_content_type_headers(), 
+            data=json.dumps(self.admin_user))
+        self.assertEqual(res.status_code, 201)
+        res = self.client().post('/auth/login', 
+            headers=self.get_accept_content_type_headers(), 
+            data=json.dumps(self.admin_user_login))
+        self.assertEqual(res.status_code, 200)
+        response_msg = json.loads(res.data.decode("UTF-8"))
+        access_token = response_msg['access_token']
+        res = self.client().put(
+            'api/v1/red-flags/e/status',
+            headers=self.get_authentication_headers(access_token), 
+            data=json.dumps(
+                {
+                    "status": "REJECTED"
+                }
+            )
+        )
+        self.assertEqual(res.status_code, 400) 
+
     def test_an_empty_list_cannot_be_modified(self):
         """Test that the API cannot allow empty lists to be modified"""
         res = self.client().post('/auth/register', 
@@ -409,6 +490,27 @@ class IncidenceTestCase(unittest.TestCase):
             data=json.dumps(
                 {
                     "comment": "RED FLAG COMMENT UPDATE"
+                }
+            )
+        )
+        self.assertEqual(res.status_code, 404)
+
+        res = self.client().post('/auth/register', 
+            headers=self.get_accept_content_type_headers(), 
+            data=json.dumps(self.admin_user))
+        self.assertEqual(res.status_code, 201)
+        res = self.client().post('/auth/login', 
+            headers=self.get_accept_content_type_headers(), 
+            data=json.dumps(self.admin_user_login))
+        self.assertEqual(res.status_code, 200)
+        response_msg = json.loads(res.data.decode("UTF-8"))
+        access_token = response_msg['access_token']
+        res = self.client().put(
+            'api/v1/red-flags/5/status',
+            headers=self.get_authentication_headers(access_token), 
+            data=json.dumps(
+                {
+                    "status": "UNDER INVESTIGATION"
                 }
             )
         )
