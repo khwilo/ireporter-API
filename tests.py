@@ -160,7 +160,7 @@ class IncidenceTestCase(unittest.TestCase):
         response_msg = json.loads(res.data.decode("UTF-8"))
         self.assertEqual(res.status_code, 401)
 
-    def test_delete_red_flag(self):
+    def test_admin_delete_red_flag(self):
         """Test whether the API cannot delete a red flag"""
         res = self.client().post('/auth/register', 
             headers=self.get_accept_content_type_headers(), 
@@ -232,6 +232,48 @@ class IncidenceTestCase(unittest.TestCase):
             )
         )
         self.assertEqual(res.status_code, 401)
+
+    def test_admin_edit_red_flag(self):
+        """Test the API cannot edit a red flag location when the user is an administrator"""
+        res = self.client().post('/auth/register', 
+            headers=self.get_accept_content_type_headers(), 
+            data=json.dumps(self.regular_user))
+        self.assertEqual(res.status_code, 201)
+        res = self.client().post('/auth/login', 
+            headers=self.get_accept_content_type_headers(), 
+            data=json.dumps(self.regular_user_login))
+        self.assertEqual(res.status_code, 200)
+        response_msg = json.loads(res.data.decode("UTF-8"))
+        access_token = response_msg['access_token']
+        res = self.client().post('/api/v1/red-flags', 
+            headers=self.get_authentication_headers(access_token), 
+            data=json.dumps(self.incidences)) # Create a red-flag
+        self.assertEqual(res.status_code, 201)
+
+        # Administrator registration
+        res = self.client().post('/auth/register', headers=self.get_accept_content_type_headers(), 
+            data=json.dumps(self.admin_user))
+        self.assertEqual(res.status_code, 201)
+        
+        # Administrator login
+        res = self.client().post('/auth/login', headers=self.get_accept_content_type_headers(),
+            data=json.dumps(self.admin_user_login))
+        self.assertEqual(res.status_code, 200)
+        response_msg = json.loads(res.data.decode("UTF-8"))
+        access_token = response_msg['access_token']
+
+        res = self.client().put(
+            '/api/v1/red-flags/1/location', 
+            headers=self.get_authentication_headers(access_token), 
+            data=json.dumps(
+                {
+                    "location": "5S10E"
+                }
+            )
+        )
+        self.assertEqual(res.status_code, 401)
+        response_msg = json.loads(res.data.decode("UTF-8"))
+        self.assertEqual("Only regular users can delete a red flag", response_msg["message"])
 
     
     def test_edit_red_flag_location(self):
