@@ -67,21 +67,26 @@ class RedFlag(Resource):
 
     @jwt_required
     def delete(self, id):
-        if id.isdigit():
-            incidence = IncidenceModel.get_incidence_by_id(int(id))
-            if incidence == {}:
-                return {'message': "red flag with id {} doesn't exit".format(id)}, 404
+        current_user  = get_jwt_identity()
+        user = UserModel.get_user_by_username(current_user)
+        
+        if not user['isAdmin']:
+            if id.isdigit():
+                incidence = IncidenceModel.get_incidence_by_id(int(id))
+                if incidence == {}:
+                    return {'message': "red flag with id {} doesn't exit".format(id)}, 404
+                else:
+                    IncidenceModel.delete_by_id(int(id))
+                    return {
+                        "status": 200,
+                        "data": [{
+                            "id": int(id),
+                            "message": "red-flag record has been deleted"
+                        }]
+                    }, 200
             else:
-                IncidenceModel.delete_by_id(int(id))
-                return {
-                    "status": 200,
-                    "data": [{
-                        "id": int(id),
-                        "message": "red-flag record has been deleted"
-                    }]
-                }, 200
-        else:
-            return {'message': "incidence id must be an Integer"}, 400
+                return {'message': "incidence id must be an Integer"}, 400
+        return {'message': 'Only regular users can delete a red flag'}, 401
 
 class RedFlagLocation(Resource):
     """Allows a request on a single RedFlag Location"""
@@ -91,21 +96,25 @@ class RedFlagLocation(Resource):
         parser.add_argument('location', type=str, required=True, help='Location cannot be blank!')
         data = parser.parse_args()
 
-    
-        if id.isdigit():
-            incidence = IncidenceModel.get_incidence_by_id(int(id))
-            if incidence == {}:
-                return {'message': "red flag with id {} doesn't exit".format(id)}, 404
-            else:
-                incidence.update(data)
-                return {
-                    "status": 200,
-                    "data": [{
-                        "id": id,
-                        "message": "Updated red-flag record’s location"
-                    }]
-                }
-        return {'message': "red-flag id must be an Integer"}, 400
+        current_user = get_jwt_identity()
+        user = UserModel.get_user_by_username(current_user)
+
+        if not user['isAdmin']:    
+            if id.isdigit():
+                incidence = IncidenceModel.get_incidence_by_id(int(id))
+                if incidence == {}:
+                    return {'message': "red flag with id {} doesn't exit".format(id)}, 404
+                else:
+                    incidence.update(data)
+                    return {
+                        "status": 200,
+                        "data": [{
+                            "id": id,
+                            "message": "Updated red-flag record’s location"
+                        }]
+                    }
+            return {'message': "red-flag id must be an Integer"}, 400
+        return {'message': "Only regular users can edit a red flag's location"}, 401
         
 class RedFlagComment(Resource):
     """Allows a request on a single RedFlag comment"""
@@ -115,21 +124,26 @@ class RedFlagComment(Resource):
         parser.add_argument('comment', type=str, required=True, help='Comment cannot be blank!')
         data = parser.parse_args()
 
-        if id.isdigit():
-            incidence = IncidenceModel.get_incidence_by_id(int(id))
-            if incidence == {}:
-                return {'message': "red flag with id {} doesn't exit".format(id)}, 404
+        current_user = get_jwt_identity()
+        user = UserModel.get_user_by_username(current_user)
+
+        if not user['isAdmin']:
+            if id.isdigit():
+                incidence = IncidenceModel.get_incidence_by_id(int(id))
+                if incidence == {}:
+                    return {'message': "red flag with id {} doesn't exit".format(id)}, 404
+                else:
+                    incidence.update(data)
+                    return {
+                        "status": 200,
+                        "data": [{
+                            "id": id,
+                            "message": "Updated red-flag record’s comment"
+                        }]
+                    }
             else:
-                incidence.update(data)
-                return {
-                    "status": 200,
-                    "data": [{
-                        "id": id,
-                        "message": "Updated red-flag record’s comment"
-                    }]
-                }
-        else:
-            return {'message': "red-flag id must be an Integer"}, 400
+                return {'message': "red-flag id must be an Integer"}, 400
+        return {'message': "Only regular users can edit a red flag's comment"}, 401
 
 class RedFlagStatus(Resource):
     """Change the status of a red flag"""

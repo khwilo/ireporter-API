@@ -160,9 +160,8 @@ class IncidenceTestCase(unittest.TestCase):
         response_msg = json.loads(res.data.decode("UTF-8"))
         self.assertEqual(res.status_code, 401)
 
-    
-    def test_fetching_one_red_flag(self):
-        """Test whether the API can fetch one red flag"""
+    def test_admin_delete_red_flag(self):
+        """Test whether the API cannot delete a red flag"""
         res = self.client().post('/auth/register', 
             headers=self.get_accept_content_type_headers(), 
             data=json.dumps(self.regular_user))
@@ -175,20 +174,26 @@ class IncidenceTestCase(unittest.TestCase):
         access_token = response_msg['access_token']
         res = self.client().post('/api/v1/red-flags', 
             headers=self.get_authentication_headers(access_token), 
-            data=json.dumps(self.incidences))
+            data=json.dumps(self.incidences)) # Create a red-flag
         self.assertEqual(res.status_code, 201)
-        res = self.client().get('/api/v1/red-flags/1', headers=self.get_authentication_headers(access_token))
+
+        # Administrator registration
+        res = self.client().post('/auth/register', headers=self.get_accept_content_type_headers(), 
+            data=json.dumps(self.admin_user))
+        self.assertEqual(res.status_code, 201)
+        
+        # Administrator login
+        res = self.client().post('/auth/login', headers=self.get_accept_content_type_headers(),
+            data=json.dumps(self.admin_user_login))
         self.assertEqual(res.status_code, 200)
         response_msg = json.loads(res.data.decode("UTF-8"))
-        self.assertEqual(200, response_msg["status"])
-        self.assertEqual(IncidenceModel.get_incidence_by_id(1), response_msg["data"][0])
-   
-    def test_unauthorized_user_cannot_delete_a_red_flag(self):
-        """Test the API cannot deletion of a red flag without authorization"""
-        res = self.client().delete('/api/v1/red-flags/1')
+        access_token = response_msg['access_token']
+
+        res = self.client().delete('/api/v1/red-flags/1', 
+            headers=self.get_authentication_headers(access_token)) # Delete the created red-flag
         self.assertEqual(res.status_code, 401)
         response_msg = json.loads(res.data.decode("UTF-8"))
-        self.assertEqual("Missing Authorization Header", response_msg['msg'])
+        self.assertEqual("Only regular users can delete a red flag", response_msg["message"])
 
     def test_delete_one_red_flag(self):
         """Test whether the API can delete a red flag"""
@@ -227,6 +232,48 @@ class IncidenceTestCase(unittest.TestCase):
             )
         )
         self.assertEqual(res.status_code, 401)
+
+    def test_admin_edit_red_flag_location(self):
+        """Test the API cannot edit a red flag location when the user is an administrator"""
+        res = self.client().post('/auth/register', 
+            headers=self.get_accept_content_type_headers(), 
+            data=json.dumps(self.regular_user))
+        self.assertEqual(res.status_code, 201)
+        res = self.client().post('/auth/login', 
+            headers=self.get_accept_content_type_headers(), 
+            data=json.dumps(self.regular_user_login))
+        self.assertEqual(res.status_code, 200)
+        response_msg = json.loads(res.data.decode("UTF-8"))
+        access_token = response_msg['access_token']
+        res = self.client().post('/api/v1/red-flags', 
+            headers=self.get_authentication_headers(access_token), 
+            data=json.dumps(self.incidences)) # Create a red-flag
+        self.assertEqual(res.status_code, 201)
+
+        # Administrator registration
+        res = self.client().post('/auth/register', headers=self.get_accept_content_type_headers(), 
+            data=json.dumps(self.admin_user))
+        self.assertEqual(res.status_code, 201)
+        
+        # Administrator login
+        res = self.client().post('/auth/login', headers=self.get_accept_content_type_headers(),
+            data=json.dumps(self.admin_user_login))
+        self.assertEqual(res.status_code, 200)
+        response_msg = json.loads(res.data.decode("UTF-8"))
+        access_token = response_msg['access_token']
+
+        res = self.client().put(
+            '/api/v1/red-flags/1/location', 
+            headers=self.get_authentication_headers(access_token), 
+            data=json.dumps(
+                {
+                    "location": "5S10E"
+                }
+            )
+        )
+        self.assertEqual(res.status_code, 401)
+        response_msg = json.loads(res.data.decode("UTF-8"))
+        self.assertEqual("Only regular users can edit a red flag's location", response_msg["message"])
 
     
     def test_edit_red_flag_location(self):
@@ -278,7 +325,48 @@ class IncidenceTestCase(unittest.TestCase):
         )
         self.assertEqual(res.status_code, 401)
 
-    
+    def test_admin_edit_red_flag_comment(self):
+        """Test the API cannot edit a red flag comment when the user is an administrator"""
+        res = self.client().post('/auth/register', 
+            headers=self.get_accept_content_type_headers(), 
+            data=json.dumps(self.regular_user))
+        self.assertEqual(res.status_code, 201)
+        res = self.client().post('/auth/login', 
+            headers=self.get_accept_content_type_headers(), 
+            data=json.dumps(self.regular_user_login))
+        self.assertEqual(res.status_code, 200)
+        response_msg = json.loads(res.data.decode("UTF-8"))
+        access_token = response_msg['access_token']
+        res = self.client().post('/api/v1/red-flags', 
+            headers=self.get_authentication_headers(access_token), 
+            data=json.dumps(self.incidences)) # Create a red-flag
+        self.assertEqual(res.status_code, 201)
+
+        # Administrator registration
+        res = self.client().post('/auth/register', headers=self.get_accept_content_type_headers(), 
+            data=json.dumps(self.admin_user))
+        self.assertEqual(res.status_code, 201)
+        
+        # Administrator login
+        res = self.client().post('/auth/login', headers=self.get_accept_content_type_headers(),
+            data=json.dumps(self.admin_user_login))
+        self.assertEqual(res.status_code, 200)
+        response_msg = json.loads(res.data.decode("UTF-8"))
+        access_token = response_msg['access_token']
+
+        res = self.client().put(
+            '/api/v1/red-flags/1/comment', 
+            headers=self.get_authentication_headers(access_token), 
+            data=json.dumps(
+                {
+                    "comment": "UNRESOLVED"
+                }
+            )
+        )
+        self.assertEqual(res.status_code, 401)
+        response_msg = json.loads(res.data.decode("UTF-8"))
+        self.assertEqual("Only regular users can edit a red flag's comment", response_msg["message"])
+
     def test_edit_red_flag_comment(self):
         """Test whether the API can edit a red flag comment"""
         res = self.client().post('/auth/register', 
