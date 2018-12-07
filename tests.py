@@ -310,6 +310,19 @@ class IncidenceTestCase(unittest.TestCase):
         res = self.client().get('/api/v1/red-flags/1', headers=self.get_authentication_headers(access_token))
         response_msg = json.loads(res.data.decode("UTF-8"))
         self.assertEqual("RED FLAG COMMENT UPDATE", response_msg["data"][0]["comment"])
+
+    def test_unauthorized_edit_of_a_red_flag_status(self):
+        """Test the API doesn't allow an unauthorized edit of a red flag"""
+        res = self.client().put(
+            '/api/v1/red-flags/1/status', 
+            headers=self.get_accept_content_type_headers(), 
+            data=json.dumps(
+                {
+                    "status": "UNRESOLVED"
+                }
+            )
+        )
+        self.assertEqual(res.status_code, 401)
     
     def test_non_integer_id_not_allowed(self):
         """Test the API doesn't allow non integer values"""
