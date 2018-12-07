@@ -136,7 +136,7 @@ class RedFlagStatus(Resource):
     @jwt_required
     def put(self, id):
         parser = reqparse.RequestParser()
-        parser.add_argument("status", type=str, required=True, help='Status cannot be blank')
+        parser.add_argument('status', type=str, required=True, help='Status cannot be blank!')
         data = parser.parse_args()
 
         current_user = get_jwt_identity()
@@ -144,7 +144,7 @@ class RedFlagStatus(Resource):
 
         if user['isAdmin']:
             if id.isdigit():
-                incidence = IncidenceModel.get_incidence_by_id(int)
+                incidence = IncidenceModel.get_incidence_by_id(int(id))
                 if incidence == {}:
                     return {'message': "red flag with id {} doesn't exit".format(id)}, 404
                 else:
