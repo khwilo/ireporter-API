@@ -1,6 +1,6 @@
 # iReporter API
 
-[![Build Status](https://travis-ci.org/khwilo/ireporter-API.svg?branch=develop)](https://travis-ci.org/khwilo/ireporter-API) [![Coverage Status](https://coveralls.io/repos/github/khwilo/ireporter-API/badge.svg?branch=develop&kill_cache=1)](https://coveralls.io/github/khwilo/ireporter-API?branch=develop&kill_cache=1)  
+[![Build Status](https://travis-ci.org/khwilo/ireporter-API.svg?branch=ft-change-intervention-status-162457254)](https://travis-ci.org/khwilo/ireporter-API) [![Coverage Status](https://coveralls.io/repos/github/khwilo/ireporter-API/badge.svg?branch=ft-change-intervention-status-162457254&kill_cache=1)](https://coveralls.io/github/khwilo/ireporter-API?branch=ft-change-intervention-status-162457254&kill_cache=1)  
 
 This repository consists of implementation of the API endpoints for the [iReporter web application](https://khwilo.github.io/iReporter/UI/).  
 
@@ -13,4 +13,4 @@ This repository consists of implementation of the API endpoints for the [iReport
 - `PUT '/api/v1/red-flags/<red-flag-id>/location'` - Edit the location of a specific red-flag record.
 - `PUT '/api/v1/red-flags/<red-flag-id>/comment'` - Edit the comment of a specific red-flag record.
 - `POST '/auth/register'` - Create a user record.
-- `POST '/auth/login` - Log in a user.  
+- `POST '/auth/login'` - Log in a user.  

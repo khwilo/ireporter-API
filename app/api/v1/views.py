@@ -131,6 +131,37 @@ class RedFlagComment(Resource):
         else:
             return {'message': "red-flag id must be an Integer"}, 400
 
+class RedFlagStatus(Resource):
+    """Change the status of a red flag"""
+    @jwt_required
+    def put(self, id):
+        parser = reqparse.RequestParser()
+        parser.add_argument('status', type=str, required=True, help='Status cannot be blank!')
+        data = parser.parse_args()
+
+        current_user = get_jwt_identity()
+        user = UserModel.get_user_by_username(current_user)
+
+        if user['isAdmin']:
+            if id.isdigit():
+                incidence = IncidenceModel.get_incidence_by_id(int(id))
+                if incidence == {}:
+                    return {'message': "red flag with id {} doesn't exit".format(id)}, 404
+                else:
+                    incidence.update(data)
+                    return {
+                        "status": 200,
+                        "data": [
+                            {
+                                "id": id,
+                                "message": "Updated red-flag record's status"
+                            }
+                        ]
+                    }
+            else:
+                return {'message': "incidence id must be an Integer"}, 400
+        return {'message': 'Only administrators can change the status!'}, 404
+
 # USER MODEL #
 class UserRegistration(Resource):
     """Registers a new user"""
