@@ -20,7 +20,7 @@ passlib==1.7.1
 pathlib2==2.3.3
 pluggy==0.8.0
 py==1.7.0
-PyJWT==1.7.0
+PyJWT==2.4.0
 pytest==4.0.1
 pytz==2018.7
 requests==2.20.1
